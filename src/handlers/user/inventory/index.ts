@@ -1,0 +1,14 @@
+import {ChatInputCommandInteraction} from 'discord.js'
+import {listItemHandler} from './list'
+import {addItemInInventoryHandler} from './add'
+import {useItemInInventoryHandler} from './use'
+
+export async function inventoryHandler(interaction: ChatInputCommandInteraction) {
+	const subcommand: string = interaction.options.getSubcommand()
+	switch (subcommand) {
+		case 'list': return await listItemHandler(interaction)
+		case 'add': return await addItemInInventoryHandler(interaction)
+		case 'use': return await useItemInInventoryHandler(interaction)
+		default: throw new Error(`Подкоманда "${subcommand}" не найдена`)
+	}
+}

@@ -1,0 +1,214 @@
+import {AttachmentBuilder, ChatInputCommandInteraction} from 'discord.js'
+import {ItemGroup} from '../../entities/psilocybin/ItemGroup'
+import ItemGroupRepository from '../../repositories/ItemGroupRepository'
+import {Item} from '../../entities/psilocybin/Item'
+import {generateWeightedRandomItems} from '../../utils/inventoryUtils'
+import {Canvas, createCanvas, Image, SKRSContext2D} from '@napi-rs/canvas'
+import {drawRoundedImage} from '../../utils/imageUtils'
+import {
+    ARROW_HEIGHT,
+    ARROW_WIDTH,
+    ARROW_Y_OFFSET,
+    arrowShakeOffset, drawArrow,
+    triggerArrowShake,
+    updateArrowShake
+} from '../../utils/arrowUtils'
+import {Inventory} from '../../entities/psilocybin/Inventory'
+import InventoryRepository from '../../repositories/InventoryRepository'
+import {InventoryItem} from '../../entities/psilocybin/InventoryItem'
+import fs from 'node:fs'
+
+import {exec} from 'child_process'
+import {promisify} from 'util'
+import {join} from 'path'
+import {writeFile} from 'fs/promises'
+import {MuhomorUser} from '../../entities/MuhomorUser'
+import MuhomorUserRepository from '../../repositories/MuhomorUserRepository'
+import {use} from '../../commands/user/inventory/use'
+const execAsync = promisify(exec)
+
+const canvasWidth: number = 500
+const canvasHeight: number = 180
+const fps: number = 20
+const durationDeceleration: number = 4
+const speedAtMax = 100
+
+const itemsCount: number = 30
+const itemWidth: number = 150
+const itemHeight: number = 150
+const itemPadding: number = 20
+
+interface ImageContainer {
+    image: Image
+    name: string
+    description: string
+    descriptionColor: string
+}
+
+async function animate(items: Item[]): Promise<Buffer> {
+    const decelerationFrames: number = Math.round(durationDeceleration * fps)
+    const images: ImageContainer[] = []
+    for (const item of items) {
+        images.push({
+            image: await item.getImage(),
+            name: item.name,
+            description: item.quality?.name ?? '...',
+            descriptionColor: item.quality?.colorHex ?? '#808080'
+        })
+    }
+
+    const canvas: Canvas = createCanvas(canvasWidth, canvasHeight)
+    const ctx: SKRSContext2D = canvas.getContext('2d')
+
+    const itemWidthContext: number = itemWidth - itemPadding * 2
+    let currentScroll: number = images.length * itemWidth
+        - canvasWidth / 2
+        - itemWidth / 2
+        + Math.floor(Math.random() * itemWidthContext - itemWidthContext / 2)
+
+    const tempDir = join(__dirname, 'temp', `gif-animation-${Date.now()}`)
+    await fs.promises.mkdir(tempDir, {recursive: true})
+    const outputGifPath = join(tempDir, `output-${Date.now()}.gif`)
+
+    for (let frame: number = decelerationFrames; frame > 0; frame--) {
+        const t: number = (decelerationFrames - frame) / decelerationFrames
+        const speed: number = Math.min(speedAtMax * t ** 3, speedAtMax)
+
+        currentScroll -= speed
+        ctx.clearRect(0, 0, canvasWidth, canvasHeight)
+
+        const visibleStartIndex: number = Math.max(Math.floor(currentScroll / itemWidth) - 1, 0)
+        const visibleEndIndex: number = visibleStartIndex + Math.ceil(canvasWidth / itemWidth) + 2
+
+        for (let i: number = visibleStartIndex; i <= visibleEndIndex; i++) {
+            const x: number = i * itemWidth - currentScroll
+            if (x + itemWidth < 0 || x > canvasWidth) {
+                continue
+            }
+
+            const index: number = i % images.length
+            const {image, name, description, descriptionColor} = images[index]
+            const imageX: number = x + itemPadding
+            drawRoundedImage(
+                ctx,
+                image,
+                imageX,
+                itemPadding,
+                itemWidth - itemPadding * 2,
+                itemHeight - itemPadding * 2,
+                14
+            )
+
+            ctx.font = '100 13px serif'
+            ctx.fillStyle = '#FFFFFF'
+            ctx.fillText(name, imageX, itemHeight)
+
+            ctx.font = '100 11px serif'
+            ctx.fillStyle = descriptionColor
+            ctx.fillText(description, imageX, itemHeight + 14)
+
+            const centerX: number = canvasWidth / 2
+            const itemCenterX: number = x + itemWidth / 2
+            if (Math.abs(itemCenterX - centerX) < 100) {
+                triggerArrowShake()
+            }
+        }
+
+        updateArrowShake(Math.abs(speed))
+
+        const arrowX: number = canvasWidth / 2 - ARROW_WIDTH / 2 + arrowShakeOffset
+        const arrowY: number = canvasHeight - ARROW_HEIGHT - ARROW_Y_OFFSET
+        drawArrow(ctx, arrowX, arrowY, ARROW_WIDTH, ARROW_HEIGHT)
+
+        const buffer: Buffer<ArrayBufferLike> = canvas.toBuffer('image/jpeg')
+        await writeFile(join(tempDir, `frame-${frame.toString().padStart(4, '0')}.jpeg`), buffer)
+    }
+
+    const ffmpegCommand = `ffmpeg \
+        -framerate ${fps} \
+        -i "${join(tempDir, 'frame-%04d.jpeg')}" \
+        -vf "scale=${canvasWidth}:${canvasHeight}:flags=lanczos" \
+        -c:v gif \
+        -loop -1 \
+        "${outputGifPath}"`
+
+    try {
+        await execAsync(ffmpegCommand)
+    } catch (error) {
+        // @ts-ignore
+        console.error('Ошибка ffmpeg:', error.stderr || error.message)
+        throw error
+    }
+
+    const gifBuffer: Buffer<ArrayBufferLike> = await fs.promises.readFile(outputGifPath)
+    await cleanupTempFiles(tempDir, outputGifPath)
+
+    return gifBuffer
+}
+
+async function cleanupTempFiles(tempDir: string, gifPath: string): Promise<void> {
+    try {
+        await fs.promises.unlink(gifPath)
+
+        const files = await fs.promises.readdir(tempDir)
+        for (const file of files) {
+            await fs.promises.unlink(join(tempDir, file))
+        }
+
+        await fs.promises.rmdir(tempDir)
+    } catch (e) {
+        // @ts-ignore
+        console.warn('Что-то пошло не так, да поебать в целом:', e.message)
+    }
+}
+
+export async function openCaseHandler(interaction: ChatInputCommandInteraction): Promise<void> {
+    const caseId: string = interaction.options.getString('case', true)
+    const caseEntity: ItemGroup|null = await ItemGroupRepository.findOne({
+        where: {id: Number(caseId)},
+        relations: ['items', 'items.quality']
+    })
+
+    if (!caseEntity) {
+        await interaction.reply(`Кейс не найден`)
+        return
+    }
+
+    const user: MuhomorUser = await MuhomorUserRepository.getCurrentUser(interaction)
+    if (user.points < caseEntity.cost) {
+        await interaction.reply(`У вас нет денег даже на кейс :index_pointing_at_the_viewer::joy:`)
+        return
+    }
+
+    await interaction.deferReply()
+
+    try {
+        const items: Item[] = caseEntity.items
+        const randomItems: Item[] = generateWeightedRandomItems(items, itemsCount)
+
+        const gifData: Buffer<ArrayBufferLike> = await animate(randomItems)
+
+        const gifAttachment: AttachmentBuilder = new AttachmentBuilder(gifData, {
+            name: 'slot-machine.gif',
+            description: 'Анимация прокрутки'
+        })
+
+        const winnerItem: Item = randomItems[randomItems.length - 1]
+        const userInventory: Inventory = await InventoryRepository.getCurrentInventory(interaction)
+
+        const inventoryItem: InventoryItem = new InventoryItem()
+        inventoryItem.item = winnerItem
+        inventoryItem.inventory = userInventory
+        await inventoryItem.save()
+
+        user.points -= caseEntity.cost
+        await user.save()
+
+        await interaction.editReply({
+            files: [gifAttachment]
+        })
+    } catch (error) {
+        console.error('Ошибка:', error)
+        await interaction.editReply('Что-то пошло не так!')
+    }
+}
