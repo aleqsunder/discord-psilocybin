@@ -4,6 +4,7 @@ import {MusicEffect} from '../effects/musicEffect'
 import {DoubleCaseCostSell} from '../effects/doubleCaseCostSell'
 import {InviteEffect} from '../effects/inviteEffect'
 import {CreateRoleEffect} from '../effects/createRoleEffect'
+import {CreateChannelEffect} from '../effects/createChannelEffect'
 
 export enum EffectType {
     TempInviteGenerate = 'TempInviteGenerate',
@@ -11,6 +12,7 @@ export enum EffectType {
     DoubleCaseCostSell = 'DoubleCaseCostSell',
     InviteEffect = 'InviteEffect',
     CreateRoleEffect = 'CreateRoleEffect',
+    CreateChannelEffect = 'CreateChannelEffect',
 }
 
 export const EffectMap: Record<EffectType, typeof AbstractEffect> = {
@@ -19,6 +21,7 @@ export const EffectMap: Record<EffectType, typeof AbstractEffect> = {
     [EffectType.DoubleCaseCostSell]: DoubleCaseCostSell,
     [EffectType.InviteEffect]: InviteEffect,
     [EffectType.CreateRoleEffect]: CreateRoleEffect,
+    [EffectType.CreateChannelEffect]: CreateChannelEffect,
 }
 
 export class EffectFactory {
@@ -29,6 +32,7 @@ export class EffectFactory {
             case EffectType.DoubleCaseCostSell: return new DoubleCaseCostSell()
             case EffectType.InviteEffect: return new InviteEffect()
             case EffectType.CreateRoleEffect: return new CreateRoleEffect()
+            case EffectType.CreateChannelEffect: return new CreateChannelEffect()
             default:
                 throw new Error(`Неизвестный эффект: ${effect}`)
         }

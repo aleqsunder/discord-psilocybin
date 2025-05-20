@@ -1,24 +1,5 @@
 import {Collection, ColorResolvable, GuildMember, ModalSubmitInteraction, Role} from 'discord.js'
-
-function validateName(name: string): boolean {
-    if (!name) {
-        throw new Error('Название роли не может быть пустым')
-    }
-    if (name.length > 100) {
-        throw new Error('Название роли не должно превышать 100 символов')
-    }
-
-    return true
-}
-
-function validateColor(color: string): boolean {
-    const hexColorRegex = /^#?([A-Fa-f0-9]{6})$/
-    if (!hexColorRegex.test(color)) {
-        throw new Error('Цвет должен быть в формате HEX (например, #FF5733)')
-    }
-
-    return true
-}
+import {validateColor, validateName} from '../../../utils/validateUtils'
 
 export async function createRoleHandler(interaction: ModalSubmitInteraction) {
     const name: string = interaction.fields.getTextInputValue('name').trim()
