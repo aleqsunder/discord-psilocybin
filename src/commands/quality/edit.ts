@@ -29,3 +29,9 @@ export const edit: SlashCommandSubcommandBuilder = new SlashCommandSubcommandBui
 			.setDescription('Шанс выпадения предмета с таким качеством из кейса')
 			.setMinValue(0)
 	)
+	.addNumberOption(option =>
+		option
+			.setName('sell-cost')
+			.setDescription('Стоимость продажи предмета с таким качеством')
+			.setMinValue(0)
+	)

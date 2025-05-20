@@ -25,3 +25,9 @@ export const create: SlashCommandSubcommandBuilder = new SlashCommandSubcommandB
 			.setRequired(true)
 			.setMinValue(0)
 	)
+	.addNumberOption(option =>
+		option
+			.setName('sell-cost')
+			.setDescription('Стоимость продажи предмета с таким качеством')
+			.setMinValue(1)
+	)
