@@ -65,6 +65,7 @@ class InventoryItemRepository extends Repository<InventoryItem> {
     getOneByFilter(filter: ItemRepositoryFilter = {}): Promise<InventoryItem|null> {
         return this.getListBuilder(filter)
             .leftJoinAndSelect('i.group', 'group')
+            .leftJoinAndSelect('i.quality', 'quality')
             .getOne()
     }
 }

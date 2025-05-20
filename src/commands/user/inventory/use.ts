@@ -5,7 +5,7 @@ export const use: SlashCommandSubcommandBuilder = new SlashCommandSubcommandBuil
     .setDescription('Использовать предмет из инвентаря')
     .addStringOption(option =>
         option
-            .setName('effect-item')
+            .setName('user-item')
             .setDescription('Предмет с эффектом')
             .setRequired(true)
             .setAutocomplete(true)

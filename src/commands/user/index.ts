@@ -4,6 +4,7 @@ import {list} from './inventory/list'
 import {add} from './inventory/add'
 import {remove} from './inventory/remove'
 import {use} from './inventory/use'
+import {sell} from './inventory/sell'
 
 export const user = new SlashCommandBuilder()
     .setName('user')
@@ -16,5 +17,6 @@ export const user = new SlashCommandBuilder()
             .addSubcommand(add)
             .addSubcommand(remove)
             .addSubcommand(use)
+            .addSubcommand(sell)
     )
     .toJSON()

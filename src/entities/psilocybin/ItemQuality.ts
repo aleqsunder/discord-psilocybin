@@ -19,6 +19,9 @@ export class ItemQuality extends BaseEntity {
 	@Column({type: 'real', default: 100})
 	chance!: number
 
+	@Column({name: 'sell_cost', type: 'integer', default: 100})
+	sellCost!: number
+
 	@Column({name: 'is_default', type: 'boolean'})
 	isDefault!: boolean
 

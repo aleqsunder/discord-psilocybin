@@ -9,7 +9,7 @@ import {list} from '../commands/list'
 import {AbstractEffect} from '../effects/abstractEffect'
 import {InventoryItem} from '../entities/psilocybin/InventoryItem'
 import InventoryItemRepository from '../repositories/InventoryItemRepository'
-import {InviteCreateOptions} from 'discord.js/typings'
+import {Like} from 'typeorm'
 
 interface ResponseBody {
 	name: string
@@ -44,7 +44,13 @@ export async function itemAutocompleteHandler(interaction: AutocompleteInteracti
 
 export async function itemQualityAutocompleteHandler(interaction: AutocompleteInteraction): Promise<void> {
 	const qualityTemp: AutocompleteFocusedOption = interaction.options.getFocused(true)
-	const qualities: ItemQuality[] = await ItemQualityRepository.searchByName(qualityTemp.value)
+	const qualities: ItemQuality[] = await ItemQualityRepository.find({
+		where: {
+			name: Like(`%${qualityTemp.value}%`),
+			serverId: interaction.guildId!,
+		}
+	})
+
 	const qualitiesResponse: ResponseBody[] = qualities.map(quality => ({
 		name: quality.name,
 		value: String(quality.id),
@@ -103,7 +109,7 @@ export async function autocompleteHandler(interaction: AutocompleteInteraction):
 		case 'quality': return await itemQualityAutocompleteHandler(interaction)
 		case 'case': return await caseAutocompleteHandler(interaction)
 		case 'command': return await commandList(interaction)
-		case 'effect-item': return await effectItemAutocompleteHandler(interaction)
+		case 'user-item': return await effectItemAutocompleteHandler(interaction)
 
 		default: throw new Error(`Несуществующий автокомплит ${focused.name}`)
 	}

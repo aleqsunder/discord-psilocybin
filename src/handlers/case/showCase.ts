@@ -23,20 +23,22 @@ export async function formatCasePageAction(
         return
     }
 
-    const items: Item[] = caseEntity.items
-    const count: number = items.length
+    const {rows, itemsInRow} = defaultListImageConfig
+    const countPerPage: number = rows * itemsInRow
+
+    const allItems: Item[] = caseEntity.items
+    const count: number = allItems.length
     if (count === 0) {
         await interaction.reply(`Данный кейс не содержит предметов`)
         return
     }
 
+    const items: Item[] = allItems.slice((page - 1) * countPerPage, page * countPerPage)
     const attachment: AttachmentBuilder = await listItemsToAttachment(items)
     let options: InteractionReplyOptions = {
         files: [attachment],
     }
 
-    const {rows, itemsInRow} = defaultListImageConfig
-    const countPerPage: number = rows * itemsInRow
     const pages: number = Math.ceil(count / countPerPage)
     if (page > pages) {
         await interaction.reply(`Страница ${page} не входит в диапазон страниц от 1 до ${pages}`)
