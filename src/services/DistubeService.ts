@@ -11,10 +11,8 @@ import DisTube, {Events, Queue, Song} from 'distube'
 import {YouTubePlugin} from '@distube/youtube'
 import {formatTime} from '../utils/timeUtils'
 import SoundCloudPlugin from '@distube/soundcloud'
-import DeezerPlugin from '@distube/deezer'
 import {DirectLinkPlugin} from '@distube/direct-link'
 import AppleMusicPlugin from 'distube-apple-music'
-import TidalPlugin from 'distube-tidal'
 
 export default class DisTubeService {
     private static instance: DisTube|null = null
@@ -27,10 +25,8 @@ export default class DisTubeService {
                 plugins: [
                     new YouTubePlugin(),
                     new SoundCloudPlugin(),
-                    new DeezerPlugin(),
                     new DirectLinkPlugin(),
                     new AppleMusicPlugin(),
-                    new TidalPlugin()
                 ]
             })
 
