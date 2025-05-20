@@ -19,6 +19,7 @@ export async function createItemHandler(interaction: ChatInputCommandInteraction
 	const name: string = interaction.options.getString('name', true)
 	const description: string = interaction.options.getString('description', true)
 	const qualityId: string|null = interaction.options.getString('quality')
+	const caseId: string|null = interaction.options.getString('case')
 	const groupId: string|null = interaction.options.getString('group')
 	const image: Attachment|null = interaction.options.getAttachment('image')
 	const effectType = interaction.options.getString('effect') as EffectType
@@ -29,7 +30,11 @@ export async function createItemHandler(interaction: ChatInputCommandInteraction
 	item.description = description
 
 	if (qualityId) {
-		const itemQuality: ItemQuality | null = await ItemQualityRepository.getItemQualityByIdOrDefault(qualityId)
+		const itemQuality: ItemQuality | null = await ItemQualityRepository.findOneBy({
+			id: Number(qualityId),
+			serverId: interaction.guildId!,
+		})
+
 		if (!itemQuality) {
 			await interaction.reply(`Качество не существует`)
 			return
@@ -38,8 +43,26 @@ export async function createItemHandler(interaction: ChatInputCommandInteraction
 		item.quality = itemQuality
 	}
 
+	if (caseId) {
+		const itemGroup: ItemGroup|null = await ItemGroupRepository.findOneBy({
+			id: Number(caseId),
+			serverId: interaction.guildId!,
+		})
+
+		if (!itemGroup) {
+			await interaction.reply(`Кейса не существует`)
+			return
+		}
+
+		item.group = itemGroup
+	}
+
 	if (groupId) {
-		const itemGroup: ItemGroup | null = await ItemGroupRepository.findOneBy({id: Number(groupId)})
+		const itemGroup: ItemGroup | null = await ItemGroupRepository.findOneBy({
+			id: Number(groupId),
+			serverId: interaction.guildId!,
+		})
+
 		if (!itemGroup) {
 			await interaction.reply(`Группа не существует`)
 			return

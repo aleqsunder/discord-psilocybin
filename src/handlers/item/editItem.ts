@@ -29,7 +29,11 @@ export async function editItemHandler(interaction: ChatInputCommandInteraction):
 
 	const caseId: string|null = interaction.options.getString('case')
 	if (caseId) {
-		const caseEntity: ItemGroup | null = await ItemGroupRepository.findOneBy({id: Number(caseId)})
+		const caseEntity: ItemGroup | null = await ItemGroupRepository.findOneBy({
+			id: Number(caseId),
+			serverId: interaction.guildId!,
+		})
+
 		if (!caseEntity) {
 			await interaction.reply(`Кейса не существует`)
 			return
@@ -53,7 +57,11 @@ export async function editItemHandler(interaction: ChatInputCommandInteraction):
 	}
 
 	if (qualityId) {
-		const itemQuality: ItemQuality|null = await ItemQuality.findOneBy({id: Number(qualityId)})
+		const itemQuality: ItemQuality|null = await ItemQuality.findOneBy({
+			id: Number(qualityId),
+			serverId: interaction.guildId!,
+		})
+
 		if (!itemQuality) {
 			await interaction.reply(`Качество не существует`)
 			return
