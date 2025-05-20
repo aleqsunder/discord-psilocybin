@@ -6,7 +6,7 @@ export async function editItemQualityHandler(interaction: ChatInputCommandIntera
 	const qualityId: string|null = interaction.options.getString('quality')
 	const name: string|null = interaction.options.getString('name')
 	const color: string|null = interaction.options.getString('color')
-	const sellCost: number|null = interaction.options.getInteger('sell-cost')
+	const sellCost: number|null = interaction.options.getNumber('sell-cost')
 
 	const itemQuality: ItemQuality|null = await ItemQualityRepository.findOneBy({id: Number(qualityId)})
 	if (!itemQuality) {
