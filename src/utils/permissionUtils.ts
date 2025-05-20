@@ -1,6 +1,6 @@
-import {ChatInputCommandInteraction, PermissionsBitField} from 'discord.js'
+import {ChatInputCommandInteraction, Interaction, PermissionsBitField} from 'discord.js'
 
-export function isAdmin(interaction: ChatInputCommandInteraction): boolean {
+export function isAdmin(interaction: Interaction|ChatInputCommandInteraction): boolean {
     if (!interaction.inGuild() || !interaction.member) {
         return false
     }

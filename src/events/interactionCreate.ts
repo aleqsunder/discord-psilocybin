@@ -14,8 +14,16 @@ import {buttonHandler} from '../handlers/buttonHandler'
 import {userHandler} from '../handlers/user'
 import {testHandler} from '../handlers/test'
 import musicHandler from '../handlers/music'
+import process from 'process'
+import {isAdmin} from '../utils/permissionUtils'
 
 export async function interactionCreateHandler(interaction: Interaction): Promise<void> {
+    const PSILOCYBIN_AVAILABLE_TO_USE_DEFAULT_USERS: boolean = process.env.PSILOCYBIN_AVAILABLE_TO_USE_DEFAULT_USERS === 'true'
+    if (!PSILOCYBIN_AVAILABLE_TO_USE_DEFAULT_USERS && !isAdmin(interaction)) {
+        await (interaction as ChatInputCommandInteraction).reply('Бот в режиме администратора!')
+        return
+    }
+
     if (!interaction.isCommand() && !interaction.isAutocomplete() && !interaction.isButton()) {
         return
     }
