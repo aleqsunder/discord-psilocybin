@@ -24,8 +24,7 @@ export class TempInviteGenerate extends AbstractEffect {
         const member: GuildMember = interaction.member as GuildMember
         const voiceChannel = member.voice.channel as VoiceChannel|null
         if (!voiceChannel) {
-            await interaction.reply('Вы должны находиться в войсе')
-            return
+            throw new Error('Вы должны находиться в войсе')
         }
 
         try {
@@ -42,7 +41,7 @@ export class TempInviteGenerate extends AbstractEffect {
             await interaction.reply('Временная инвайт-ссылка создана и отправлена в ЛС')
         } catch (e) {
             console.log(e)
-            await interaction.reply('Не удалось создать временную инвайт-ссылку')
+            throw new Error('Не удалось создать временную инвайт-ссылку')
         }
     }
 }

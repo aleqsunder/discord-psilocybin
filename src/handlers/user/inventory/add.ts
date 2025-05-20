@@ -16,12 +16,15 @@ export async function addItemInInventoryHandler(interaction: ChatInputCommandInt
     const user: User = interaction.options.getUser('user', true)
     const itemId: string = interaction.options.getString('item', true)
     const item: Item|null = await ItemRepository.findOne({
-        where: {id: Number(itemId)},
+        where: {
+            id: Number(itemId),
+            serverId: interaction.guildId!,
+        },
         relations: ['quality']
     })
 
     if (!item) {
-        await interaction.reply(`Предмет не существует`)
+        await interaction.reply(`Предмета не существует`)
         return
     }
 

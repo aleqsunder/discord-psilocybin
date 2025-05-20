@@ -165,7 +165,10 @@ async function cleanupTempFiles(tempDir: string, gifPath: string): Promise<void>
 export async function openCaseHandler(interaction: ChatInputCommandInteraction): Promise<void> {
     const caseId: string = interaction.options.getString('case', true)
     const caseEntity: ItemGroup|null = await ItemGroupRepository.findOne({
-        where: {id: Number(caseId)},
+        where: {
+            id: Number(caseId),
+            serverId: interaction.guildId!
+        },
         relations: ['items', 'items.quality']
     })
 

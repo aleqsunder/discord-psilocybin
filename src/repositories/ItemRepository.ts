@@ -3,6 +3,8 @@ import {Repository, SelectQueryBuilder} from 'typeorm'
 import {Psilocybin} from '../database/psilocybin'
 
 export interface ItemRepositoryFilter {
+	id?: number
+	itemId?: number
 	serverId?: SnowflakeOrNull
 	userId?: SnowflakeOrNull
 	name?: string
@@ -11,6 +13,10 @@ export interface ItemRepositoryFilter {
 }
 
 function filterItemsList(qb: SelectQueryBuilder<Item>, filter: ItemRepositoryFilter): SelectQueryBuilder<Item> {
+	if (filter.id) {
+		qb.andWhere('i.id = :id', {id: filter.id})
+	}
+
 	if (filter.serverId) {
 		qb.andWhere('i.server_id = :serverId', {serverId: filter.serverId})
 	}

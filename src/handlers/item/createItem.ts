@@ -24,7 +24,7 @@ export async function createItemHandler(interaction: ChatInputCommandInteraction
 	const effectType = interaction.options.getString('effect') as EffectType
 
 	const item = new Item()
-	item.serverId = interaction.guildId ?? '0'
+	item.serverId = interaction.guildId!
 	item.name = name
 	item.description = description
 

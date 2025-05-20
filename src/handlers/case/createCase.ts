@@ -17,7 +17,7 @@ export async function createCaseHandler(interaction: ChatInputCommandInteraction
 	const cost: number|null = interaction.options.getNumber('cost')
 
 	const group = new ItemGroup()
-	group.serverId = interaction.guildId ?? '0'
+	group.serverId = interaction.guildId!
 	group.name = name
 	group.description = description
 

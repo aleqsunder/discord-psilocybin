@@ -4,6 +4,14 @@ import {ItemRepositoryFilter} from './ItemRepository'
 import {Psilocybin} from '../database/psilocybin'
 
 function filterItemsList(qb: SelectQueryBuilder<InventoryItem>, filter: ItemRepositoryFilter): SelectQueryBuilder<InventoryItem> {
+    if (filter.id) {
+        qb.andWhere('inv_i.id = :id', {id: filter.id})
+    }
+
+    if (filter.itemId) {
+        qb.andWhere('i.id = :itemId', {itemId: filter.itemId})
+    }
+
     if (filter.serverId) {
         qb.andWhere('i.server_id = :serverId', {serverId: filter.serverId})
     }
@@ -56,6 +64,7 @@ class InventoryItemRepository extends Repository<InventoryItem> {
 
     getOneByFilter(filter: ItemRepositoryFilter = {}): Promise<InventoryItem|null> {
         return this.getListBuilder(filter)
+            .leftJoinAndSelect('i.group', 'group')
             .getOne()
     }
 }

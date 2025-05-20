@@ -10,18 +10,18 @@ export class InviteEffect extends AbstractEffect {
 
     async onEffect(interaction: ChatInputCommandInteraction): Promise<void> {
         try {
-        const channel = interaction.channel as TextChannel
-        const invite = await channel.createInvite({
-            maxAge: 3600 * 24,
-            maxUses: 1,
-            unique: true,
-        })
+            const channel = interaction.channel as TextChannel
+            const invite = await channel.createInvite({
+                maxAge: 3600 * 24,
+                maxUses: 1,
+                unique: true,
+            })
 
-        await interaction.user.send(`Инвайт-ссылка на сервер: ${invite.url}\nВремя жизни: 24 часа`)
-        await interaction.reply('Инвайт-ссылка создана и отправлена в ЛС')
+            await interaction.user.send(`Инвайт-ссылка на сервер: ${invite.url}\nВремя жизни: 24 часа`)
+            await interaction.reply('Инвайт-ссылка создана и отправлена в ЛС')
         } catch (e) {
             console.log(e)
-            await interaction.reply('Не удалось создать инвайт-ссылку')
+            throw new Error('Не удалось создать инвайт-ссылку')
         }
     }
 }

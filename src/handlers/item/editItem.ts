@@ -17,7 +17,11 @@ export async function editItemHandler(interaction: ChatInputCommandInteraction):
 	}
 
 	const itemId: string = interaction.options.getString('item', true)
-	const item: Item|null = await ItemRepository.findOneBy({id: Number(itemId)})
+	const item: Item|null = await ItemRepository.findOneBy({
+		id: Number(itemId),
+		serverId: interaction.guildId!,
+	})
+
 	if (!item) {
 		await interaction.reply(`Предмет не существует`)
 		return

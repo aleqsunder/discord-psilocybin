@@ -1,4 +1,4 @@
-import {AutocompleteFocusedOption, AutocompleteInteraction} from 'discord.js'
+import {AutocompleteFocusedOption, AutocompleteInteraction, GuildMember} from 'discord.js'
 import {Item} from '../entities/psilocybin/Item'
 import ItemRepository from '../repositories/ItemRepository'
 import {ItemQuality} from '../entities/psilocybin/ItemQuality'
@@ -70,9 +70,11 @@ export async function caseAutocompleteHandler(interaction: AutocompleteInteracti
 
 export async function effectItemAutocompleteHandler(interaction: AutocompleteInteraction): Promise<void> {
 	const effectItemTemp: AutocompleteFocusedOption = interaction.options.getFocused(true)
+	const member = interaction.member as GuildMember
 	const inventoryItems: InventoryItem[] = await InventoryItemRepository.getList(1, 6, {
 		name: effectItemTemp.value,
 		serverId: interaction.guildId,
+		userId: member.id,
 		groupBy: 'effect'
 	})
 

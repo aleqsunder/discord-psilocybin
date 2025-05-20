@@ -69,7 +69,10 @@ export async function showCaseHandler(interaction: ChatInputCommandInteraction):
     const page: number = interaction.options.getNumber('page') ?? 1
     const caseId: string = interaction.options.getString('case', true)
     const caseEntity: ItemGroup|null = await ItemGroupRepository.findOne({
-        where: {id: Number(caseId)},
+        where: {
+            id: Number(caseId),
+            serverId: interaction.guildId!,
+        },
         relations: ['items', 'items.quality']
     })
 

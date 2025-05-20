@@ -14,8 +14,7 @@ export class DoubleCaseCostSell extends AbstractEffect {
 
     async onEffect(interaction: ChatInputCommandInteraction, inventoryItem: InventoryItem, group: ItemGroup|null): Promise<void> {
         if (!group) {
-            await interaction.reply('Предмет не относится ни к одному из кейсов')
-            return
+            throw new Error('Предмет не относится ни к одному из кейсов')
         }
 
         const doubleCost: number = group.cost * 2

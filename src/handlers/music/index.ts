@@ -16,8 +16,10 @@ export default async function musicHandler(interaction: ChatInputCommandInteract
 
     const inventoryItem: InventoryItem|null = await InventoryItemRepository.getOneByFilter({
         serverId: interaction.guildId!,
+        userId: member.id,
         effect: EffectType.MusicEffect,
     })
+
     if (!inventoryItem) {
         await interaction.reply('В вашем инвентаре нет предмета с эффектом "Музыкальный бот"')
         return

@@ -5,9 +5,9 @@ import {InventoryItem} from '../../../entities/psilocybin/InventoryItem'
 
 export async function useItemInInventoryHandler(interaction: ChatInputCommandInteraction): Promise<void> {
     const effectItemId: string = interaction.options.getString('effect-item', true)
-    const inventoryItem: InventoryItem|null = await InventoryItemRepository.findOne({
-        where: {id: Number(effectItemId)},
-        relations: ['item', 'item.group']
+    const inventoryItem: InventoryItem|null = await InventoryItemRepository.getOneByFilter({
+        id: Number(effectItemId),
+        serverId: interaction.guildId!,
     })
 
     if (!inventoryItem) {
@@ -26,5 +26,6 @@ export async function useItemInInventoryHandler(interaction: ChatInputCommandInt
         await effect.onDelete(interaction, inventoryItem)
     } catch (e) {
         console.log('Ошибка выполнения эффекта', e)
+        await interaction.reply('Не удалось выполнить эффект')
     }
 }

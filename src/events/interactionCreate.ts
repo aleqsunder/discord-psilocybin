@@ -15,7 +15,6 @@ import {userHandler} from '../handlers/user'
 import {testHandler} from '../handlers/test'
 import musicHandler from '../handlers/music'
 
-
 export async function interactionCreateHandler(interaction: Interaction): Promise<void> {
     if (!interaction.isCommand() && !interaction.isAutocomplete() && !interaction.isButton()) {
         return
