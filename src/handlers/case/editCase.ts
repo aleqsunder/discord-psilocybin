@@ -12,7 +12,7 @@ export async function editCaseHandler(interaction: ChatInputCommandInteraction):
 		return
 	}
 
-	const groupId: string = interaction.options.getString('group', true)
+	const groupId: string = interaction.options.getString('case', true)
 	const name: string|null = interaction.options.getString('name')
 	const description: string|null = interaction.options.getString('description')
 	const image: Attachment|null = interaction.options.getAttachment('image')
