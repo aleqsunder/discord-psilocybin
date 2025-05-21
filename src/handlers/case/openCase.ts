@@ -3,7 +3,7 @@ import {ItemGroup} from '../../entities/psilocybin/ItemGroup'
 import ItemGroupRepository from '../../repositories/ItemGroupRepository'
 import {Item} from '../../entities/psilocybin/Item'
 import {generateWeightedRandomItems} from '../../utils/inventoryUtils'
-import {Canvas, createCanvas, Image, SKRSContext2D} from '@napi-rs/canvas'
+import {Canvas, createCanvas, Image, loadImage, SKRSContext2D} from '@napi-rs/canvas'
 import {drawRoundedImage} from '../../utils/imageUtils'
 import {
     ARROW_HEIGHT,
@@ -24,7 +24,6 @@ import {join} from 'path'
 import {writeFile} from 'fs/promises'
 import {MuhomorUser} from '../../entities/MuhomorUser'
 import MuhomorUserRepository from '../../repositories/MuhomorUserRepository'
-import {use} from '../../commands/user/inventory/use'
 import {truncateTextWithEllipsis} from '../../utils/paginationUtils'
 const execAsync = promisify(exec)
 
@@ -76,8 +75,8 @@ async function animate(items: Item[]): Promise<Buffer> {
         const speed: number = Math.min(speedAtMax * t ** 3, speedAtMax)
 
         currentScroll -= speed
-        ctx.fillStyle = '#323339'
-        ctx.fillRect(0, 0, canvas.width, canvas.height)
+        const background: Image = await loadImage(join(__dirname, '../images/background.jpg'))
+        ctx.drawImage(background, 0, 0, canvas.width, canvas.height)
 
         const visibleStartIndex: number = Math.max(Math.floor(currentScroll / itemWidth) - 1, 0)
         const visibleEndIndex: number = visibleStartIndex + Math.ceil(canvasWidth / itemWidth) + 2
@@ -91,6 +90,30 @@ async function animate(items: Item[]): Promise<Buffer> {
             const index: number = i % images.length
             const {image, name, description, descriptionColor} = images[index]
             const imageX: number = x + itemPadding
+
+            ctx.save()
+            ctx.beginPath()
+
+            ctx.fillStyle = "rgba(0, 0, 0, 0.40)"
+            ctx.roundRect(imageX, itemPadding, itemWidthContext, itemHeight - 4, 10)
+            ctx.fill()
+            ctx.closePath()
+
+            ctx.clip()
+            ctx.restore()
+
+            ctx.font = '100 12px serif'
+            ctx.fillStyle = '#FFFFFF'
+
+            const nameTruncated: string = truncateTextWithEllipsis(ctx, name ?? '', itemWidthContext - 18)
+            ctx.fillText(nameTruncated, imageX + 6, itemHeight - 4)
+
+            ctx.font = '100 10px serif'
+            ctx.fillStyle = descriptionColor
+
+            const descriptionTruncated: string = truncateTextWithEllipsis(ctx, description ?? '', itemWidthContext - 18)
+            ctx.fillText(descriptionTruncated, imageX + 6, itemHeight + 8)
+
             drawRoundedImage(
                 ctx,
                 image,
@@ -98,20 +121,8 @@ async function animate(items: Item[]): Promise<Buffer> {
                 itemPadding,
                 itemWidth - itemPadding * 2,
                 itemHeight - itemPadding * 2,
-                14
+                10
             )
-
-            ctx.font = '100 13px serif'
-            ctx.fillStyle = '#FFFFFF'
-
-            const nameTruncated: string = truncateTextWithEllipsis(ctx, name ?? '', itemWidthContext)
-            ctx.fillText(nameTruncated, imageX, itemHeight)
-
-            ctx.font = '100 11px serif'
-            ctx.fillStyle = descriptionColor
-
-            const descriptionTruncated: string = truncateTextWithEllipsis(ctx, description ?? '', itemWidthContext)
-            ctx.fillText(descriptionTruncated, imageX, itemHeight + 14)
 
             const centerX: number = canvasWidth / 2
             const itemCenterX: number = x + itemWidth / 2
