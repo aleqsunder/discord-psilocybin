@@ -1,7 +1,9 @@
 import {
     ActionRowBuilder,
-    ButtonBuilder, ButtonInteraction,
-    ButtonStyle, ChatInputCommandInteraction,
+    ButtonBuilder,
+    ButtonInteraction,
+    ButtonStyle,
+    ChatInputCommandInteraction,
     Client,
     EmbedBuilder,
     GuildTextBasedChannel,
@@ -13,17 +15,22 @@ import {formatTime} from '../utils/timeUtils'
 import SoundCloudPlugin from '@distube/soundcloud'
 import {DirectLinkPlugin} from '@distube/direct-link'
 import AppleMusicPlugin from 'distube-apple-music'
+import path from 'path'
+import fs from 'fs/promises'
+import ytdl from '@distube/ytdl-core'
 
 export default class DisTubeService {
     private static instance: DisTube|null = null
     private static musicMessages: Map<string, Message> = new Map<string, Message>()
 
-    public static init(client: Client): DisTube {
+    public static async init(client: Client): Promise<DisTube> {
+        const cookies: ytdl.Cookie[]|undefined = await this.loadCookies()
+
         if (this.instance === null) {
             this.instance = new DisTube(client, {
                 emitNewSongOnly: true,
                 plugins: [
-                    new YouTubePlugin(),
+                    new YouTubePlugin({cookies}),
                     new SoundCloudPlugin(),
                     new DirectLinkPlugin(),
                     new AppleMusicPlugin(),
@@ -37,6 +44,19 @@ export default class DisTubeService {
         }
 
         return this.instance
+    }
+
+    private static async loadCookies(): Promise<ytdl.Cookie[]|undefined> {
+        const cookiesPath = path.resolve(__dirname, 'cookies.json')
+
+        try {
+            await fs.access(cookiesPath)
+            const data = await fs.readFile(cookiesPath, 'utf-8')
+            return JSON.parse(data)
+        } catch (error) {
+            console.error('Ошибка cookie parse:', error)
+            return undefined
+        }
     }
 
     public static get(): DisTube {
