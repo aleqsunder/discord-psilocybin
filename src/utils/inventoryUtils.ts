@@ -3,6 +3,7 @@ import {Canvas, createCanvas, loadImage, SKRSContext2D} from '@napi-rs/canvas'
 import {AttachmentBuilder} from 'discord.js'
 import {truncateTextWithEllipsis} from './paginationUtils'
 import {ItemGroup} from '../entities/psilocybin/ItemGroup'
+import {ItemQuality} from '../entities/psilocybin/ItemQuality'
 
 export const defaultListImageConfig: RequiredListImageConfig = {
 	rows: 2,
@@ -107,22 +108,46 @@ export async function listCasesToAttachment(items: ItemGroup[], config?: ListIma
 	return generateList(list, config)
 }
 
+type QualityGroup = {
+	quality: ItemQuality
+	items: Item[]
+}
+
 export function generateWeightedRandomItems(items: Item[], size: number): Item[] {
-	if (items.length === 0) {
+	if (items.length === 0 || size <= 0) {
 		return []
 	}
 
-	const totalChance: number = items.reduce((sum: number, item: Item) => sum + (item.quality?.chance ?? 100), 0)
+	const uniqueQualities: Record<number, QualityGroup> = {}
+	for (const item of items) {
+		const quality: ItemQuality|null = item.quality
+		if (!quality) {
+			continue
+		}
+
+		if (!uniqueQualities[quality.id]) {
+			uniqueQualities[quality.id] = {quality, items: []}
+		}
+
+		uniqueQualities[quality.id].items.push(item)
+	}
+
+	const qualityGroups: QualityGroup[] = Object.values(uniqueQualities)
+	const totalChance: number = qualityGroups.reduce((sum: number, group: QualityGroup) => sum + group.quality.chance, 0)
 	const result: Item[] = []
-	for (let i = 0; i < size; i++) {
-		const random: number = Math.random() * totalChance
+	for (let i: number = 0; i < size; i++) {
 		let currentSum: number = 0
-		for (const item of items) {
-			currentSum += item.quality?.chance ?? 100
-			if (currentSum >= random) {
-				result.push(item)
-				break
+		const random: number = Math.random() * totalChance
+
+		for (const group of qualityGroups) {
+			currentSum += group.quality.chance
+			if (currentSum < random) {
+				continue
 			}
+
+			const itemsInQuality: Item[] = group.items
+			result.push(itemsInQuality[Math.floor(Math.random() * itemsInQuality.length)])
+			break
 		}
 	}
 

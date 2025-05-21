@@ -3,7 +3,6 @@ import {
     ButtonInteraction,
     ChatInputCommandInteraction,
     Interaction,
-    PermissionsBitField,
 } from 'discord.js'
 import {helpHandler} from "../handlers/helpHandler"
 import {autocompleteHandler} from '../handlers/autocompleteHandler'
