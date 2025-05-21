@@ -28,12 +28,6 @@ export async function interactionCreateHandler(interaction: Interaction): Promis
         return
     }
 
-    // @ts-ignore
-    if (!interaction.member.permissions.has(PermissionsBitField.Flags.BanMembers)) {
-        await (interaction as ChatInputCommandInteraction).reply('У вас нет прав))')
-        return
-    }
-
     try {
         if (!interaction.inGuild()) {
             // для обменника (на будущее)
