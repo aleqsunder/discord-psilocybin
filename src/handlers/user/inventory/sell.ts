@@ -6,6 +6,8 @@ import {MuhomorUser} from '../../../entities/MuhomorUser'
 import MuhomorUserRepository from '../../../repositories/MuhomorUserRepository'
 
 export async function sellItemInInventoryHandler(interaction: ChatInputCommandInteraction): Promise<void> {
+    await interaction.deferReply()
+
     const user: User = interaction.user
     const userItemId: string = interaction.options.getString('user-item', true)
     const inventoryItem: InventoryItem|null = await InventoryItemRepository.getOneByFilter({

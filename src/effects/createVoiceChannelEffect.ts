@@ -7,19 +7,19 @@ import {
     TextInputBuilder,
     TextInputStyle
 } from 'discord.js'
-import {createChannelHandler} from '../handlers/user/modals/createChannel'
+import {createVoiceChannelHandler} from '../handlers/user/modals/createVoiceChannel'
 
-export class CreateChannelEffect extends AbstractEffect {
+export class CreateVoiceChannelEffect extends AbstractEffect {
     removeAfterUse = true
 
-    name = 'Создание канала'
-    shortName = '💬'
-    description = 'Создаёт канал пользователя, где вы - модератор'
+    name = 'Создание голосового канала'
+    shortName = '🎙️'
+    description = 'Создаёт голосовой канал, где вы — модератор'
 
     async onEffect(interaction: ChatInputCommandInteraction): Promise<void> {
         const modal = new ModalBuilder()
-            .setCustomId('create_channel_effect')
-            .setTitle('Создание канала')
+            .setCustomId('create_voice_channel_effect')
+            .setTitle('Создание голосового канала')
 
         const nameInput = new TextInputBuilder()
             .setCustomId('name')
@@ -35,13 +35,13 @@ export class CreateChannelEffect extends AbstractEffect {
         const modalInteraction: ModalSubmitInteraction = await interaction.awaitModalSubmit({
             time: 60000,
             filter: (i: ModalSubmitInteraction) =>
-                i.customId === 'create_channel_effect' && i.user.id === interaction.user.id
+                i.customId === 'create_voice_channel_effect' && i.user.id === interaction.user.id
         })
 
         if (!modalInteraction.isModalSubmit()) {
             return
         }
 
-        await createChannelHandler(modalInteraction)
+        await createVoiceChannelHandler(modalInteraction)
     }
 }

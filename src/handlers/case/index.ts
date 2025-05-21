@@ -7,6 +7,8 @@ import {openCaseHandler} from './openCase'
 import {removeCaseHandler} from './remove'
 
 export async function itemCaseHandler(interaction: ChatInputCommandInteraction): Promise<void> {
+	await interaction.deferReply()
+
 	const subcommand: string = interaction.options.getSubcommand()
 	switch (subcommand) {
 		case 'create': return await createCaseHandler(interaction)

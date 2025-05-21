@@ -4,8 +4,7 @@ import {
     ButtonBuilder,
     ButtonInteraction,
     ChatInputCommandInteraction,
-    InteractionCallbackResponse, InteractionEditReplyOptions,
-    InteractionReplyOptions,
+    InteractionEditReplyOptions,
     InteractionUpdateOptions, Message,
     User,
 } from 'discord.js'
@@ -67,6 +66,8 @@ export async function formatInventoryItemListPageAction(interaction: ChatInputCo
 }
 
 export async function listItemHandler(interaction: ChatInputCommandInteraction): Promise<void> {
+    await interaction.deferReply()
+
     let user: User|null = interaction.options.getUser('user')
     if (!user) {
         user = interaction.user

@@ -5,6 +5,8 @@ import {listItemHandler} from './list'
 import {removeItemHandler} from './remove'
 
 export async function itemHandler(interaction: ChatInputCommandInteraction): Promise<void> {
+	await interaction.deferReply()
+
 	const subcommand: string = interaction.options.getSubcommand()
 	switch (subcommand) {
 		case 'create': return await createItemHandler(interaction)

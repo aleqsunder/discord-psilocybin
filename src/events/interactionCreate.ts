@@ -48,8 +48,6 @@ export async function interactionCreateHandler(interaction: Interaction): Promis
         }
 
         interaction = interaction as ChatInputCommandInteraction
-        await interaction.deferReply()
-
         switch (interaction.commandName) {
             case 'help': return await helpHandler(interaction)
             case 'item': return await itemHandler(interaction)

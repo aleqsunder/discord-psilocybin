@@ -5,6 +5,8 @@ import {isAdmin} from '../../utils/permissionUtils'
 import {removeItemQualityHandler} from './removeItemQuality'
 
 export async function itemQualityHandler(interaction: ChatInputCommandInteraction): Promise<void> {
+	await interaction.deferReply()
+
 	if (!isAdmin(interaction)) {
 		await interaction.editReply(`У вас недостаточно прав для выполнения данной команды`)
 		return

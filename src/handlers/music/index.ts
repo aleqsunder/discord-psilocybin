@@ -6,6 +6,8 @@ import InventoryItemRepository from '../../repositories/InventoryItemRepository'
 import {EffectType} from '../../factories/EffectFactory'
 
 export default async function musicHandler(interaction: ChatInputCommandInteraction): Promise<void> {
+    await interaction.deferReply()
+
     const member: GuildMember = interaction.member as GuildMember
     const textChannel: GuildTextBasedChannel = interaction.channel as GuildTextBasedChannel
     const voiceChannel: VoiceBasedChannel|null = member.voice.channel

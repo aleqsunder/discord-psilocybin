@@ -4,6 +4,8 @@ import InventoryItemRepository from '../../../repositories/InventoryItemReposito
 import {isAdmin} from '../../../utils/permissionUtils'
 
 export async function removeItemInInventoryHandler(interaction: ChatInputCommandInteraction): Promise<void> {
+    await interaction.deferReply()
+
     if (!isAdmin(interaction)) {
         await interaction.editReply(`У вас недостаточно прав для выполнения данной команды`)
         return

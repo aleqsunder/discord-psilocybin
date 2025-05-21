@@ -29,6 +29,8 @@ function commandMap(command: PsilocybinCommand, commandName: string|null = null)
 }
 
 export async function helpHandler(interaction: ChatInputCommandInteraction): Promise<void> {
+    await interaction.deferReply()
+
     let command: PsilocybinCommand|null = null
     const commandName: string|null = interaction.options.getString('command')
     if (typeof commandName === 'string') {
