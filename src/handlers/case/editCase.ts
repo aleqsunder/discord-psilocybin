@@ -8,7 +8,7 @@ import {isAdmin} from '../../utils/permissionUtils'
 
 export async function editCaseHandler(interaction: ChatInputCommandInteraction): Promise<void> {
 	if (!isAdmin(interaction)) {
-		await interaction.reply(`У вас недостаточно прав для выполнения данной команды`)
+		await interaction.editReply(`У вас недостаточно прав для выполнения данной команды`)
 		return
 	}
 
@@ -20,7 +20,7 @@ export async function editCaseHandler(interaction: ChatInputCommandInteraction):
 
 	const group: ItemGroup|null = await ItemGroupRepository.findOneBy({id: Number(groupId)})
 	if (!group) {
-		await interaction.reply(`Группа не существует`)
+		await interaction.editReply(`Группа не существует`)
 		return
 	}
 
@@ -49,5 +49,5 @@ export async function editCaseHandler(interaction: ChatInputCommandInteraction):
 		.setImage(`attachment://${path.basename(group.imagePath)}`)
 		.setColor(0x123456)
 
-	await interaction.reply({embeds: [embed], files: [attachment]})
+	await interaction.editReply({embeds: [embed], files: [attachment]})
 }

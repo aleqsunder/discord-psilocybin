@@ -12,7 +12,7 @@ import {EffectType} from '../../factories/EffectFactory'
 
 export async function editItemHandler(interaction: ChatInputCommandInteraction): Promise<void> {
 	if (!isAdmin(interaction)) {
-		await interaction.reply(`У вас недостаточно прав для выполнения данной команды`)
+		await interaction.editReply(`У вас недостаточно прав для выполнения данной команды`)
 		return
 	}
 
@@ -23,7 +23,7 @@ export async function editItemHandler(interaction: ChatInputCommandInteraction):
 	})
 
 	if (!item) {
-		await interaction.reply(`Предмет не существует`)
+		await interaction.editReply(`Предмет не существует`)
 		return
 	}
 
@@ -35,7 +35,7 @@ export async function editItemHandler(interaction: ChatInputCommandInteraction):
 		})
 
 		if (!caseEntity) {
-			await interaction.reply(`Кейса не существует`)
+			await interaction.editReply(`Кейса не существует`)
 			return
 		}
 
@@ -63,7 +63,7 @@ export async function editItemHandler(interaction: ChatInputCommandInteraction):
 		})
 
 		if (!itemQuality) {
-			await interaction.reply(`Качество не существует`)
+			await interaction.editReply(`Качество не существует`)
 			return
 		}
 
@@ -88,5 +88,5 @@ export async function editItemHandler(interaction: ChatInputCommandInteraction):
 		.setImage(`attachment://${path.basename(item.imagePath)}`)
 		.setColor(item.quality?.colorHex as ColorResolvable ?? 0x333)
 
-	await interaction.reply({embeds: [embed], files: [attachment]})
+	await interaction.editReply({embeds: [embed], files: [attachment]})
 }

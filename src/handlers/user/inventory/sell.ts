@@ -15,27 +15,27 @@ export async function sellItemInInventoryHandler(interaction: ChatInputCommandIn
     })
 
     if (!inventoryItem) {
-        await interaction.reply(`Предмета в инвентаре не существует`)
+        await interaction.editReply(`Предмета в инвентаре не существует`)
         return
     }
 
     const quality: ItemQuality|null = inventoryItem.item.quality
     if (!quality) {
-        await interaction.reply(`У предмета отсутствует качество`)
+        await interaction.editReply(`У предмета отсутствует качество`)
         return
     }
 
     try {
-        const sellCost = quality.sellCost ?? 100
+        const sellCost: number = quality.sellCost ?? 100
         const muhomorUser: MuhomorUser = await MuhomorUserRepository.getCurrentUser(interaction)
         muhomorUser.points += sellCost
 
         await muhomorUser.save()
         await inventoryItem.remove()
 
-        await interaction.reply(`Предмет продан!`)
+        await interaction.editReply(`Предмет продан!`)
     } catch (e) {
         console.log(e)
-        await interaction.reply(`Предмет не получилось продать`)
+        await interaction.editReply(`Предмет не получилось продать`)
     }
 }

@@ -10,7 +10,7 @@ export default async function musicHandler(interaction: ChatInputCommandInteract
     const textChannel: GuildTextBasedChannel = interaction.channel as GuildTextBasedChannel
     const voiceChannel: VoiceBasedChannel|null = member.voice.channel
     if (!voiceChannel) {
-        await interaction.reply('Вы должны находиться в войсе')
+        await interaction.editReply('Вы должны находиться в войсе')
         return
     }
 
@@ -21,11 +21,10 @@ export default async function musicHandler(interaction: ChatInputCommandInteract
     })
 
     if (!inventoryItem) {
-        await interaction.reply('В вашем инвентаре нет предмета с эффектом "Музыкальный бот"')
+        await interaction.editReply('В вашем инвентаре нет предмета с эффектом "Музыкальный бот"')
         return
     }
 
-    await interaction.deferReply()
     const input: string = interaction.options.getString('input', true)
 
     try {

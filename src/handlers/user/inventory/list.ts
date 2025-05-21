@@ -4,9 +4,9 @@ import {
     ButtonBuilder,
     ButtonInteraction,
     ChatInputCommandInteraction,
-    InteractionCallbackResponse,
+    InteractionCallbackResponse, InteractionEditReplyOptions,
     InteractionReplyOptions,
-    InteractionUpdateOptions,
+    InteractionUpdateOptions, Message,
     User,
 } from 'discord.js'
 import {ItemRepositoryFilter} from '../../../repositories/ItemRepository'
@@ -27,7 +27,7 @@ export async function formatInventoryItemListPageAction(interaction: ChatInputCo
 
     const count: number = await InventoryItemRepository.getListCount(filter)
     if (count === 0) {
-        await interaction.reply(`Инвентарь пользователя <@${userId}> пуст`)
+        await interaction.editReply(`Инвентарь пользователя <@${userId}> пуст`)
         return
     }
 
@@ -36,14 +36,14 @@ export async function formatInventoryItemListPageAction(interaction: ChatInputCo
     const pages: number = Math.ceil(count / countPerPage)
 
     if (page > pages) {
-        await interaction.reply(`Страница ${page} не входит в диапазон страниц от 1 до ${pages}`)
+        await interaction.editReply(`Страница ${page} не входит в диапазон страниц от 1 до ${pages}`)
         return
     }
 
     const inventoryItems: InventoryItem[] = await InventoryItemRepository.getList(page, countPerPage, filter)
     const items: Item[] = inventoryItems.map(inventoryItem => inventoryItem.item)
     const attachment: AttachmentBuilder = await listItemsToAttachment(items)
-    let options: InteractionReplyOptions = {
+    let options: InteractionEditReplyOptions = {
         files: [attachment],
     }
 
@@ -55,12 +55,9 @@ export async function formatInventoryItemListPageAction(interaction: ChatInputCo
     if (interaction.isButton()) {
         await interaction.update(options as InteractionUpdateOptions)
     } else {
-        const reply: InteractionCallbackResponse = await interaction.reply({...options, withResponse: true})
-        if (!reply?.resource?.message) {
-            return
-        }
+        const reply: Message = await interaction.editReply(options)
 
-        PaginationCache.set(reply.resource.message.id, {
+        PaginationCache.set(reply.id, {
             type: PaginationType.INVENTORY,
             serverId: interaction.guildId!,
             createdAt: Date.now(),

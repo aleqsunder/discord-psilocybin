@@ -7,7 +7,7 @@ import {isAdmin} from '../../utils/permissionUtils'
 
 export async function createCaseHandler(interaction: ChatInputCommandInteraction): Promise<void> {
 	if (!isAdmin(interaction)) {
-		await interaction.reply(`У вас недостаточно прав для выполнения данной команды`)
+		await interaction.editReply(`У вас недостаточно прав для выполнения данной команды`)
 		return
 	}
 
@@ -42,5 +42,5 @@ export async function createCaseHandler(interaction: ChatInputCommandInteraction
 		.setImage(`attachment://${path.basename(imagePath)}`)
 		.setColor(0x123456)
 
-	await interaction.reply({embeds: [embed], files: [attachment]})
+	await interaction.editReply({embeds: [embed], files: [attachment]})
 }

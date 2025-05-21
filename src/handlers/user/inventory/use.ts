@@ -11,13 +11,13 @@ export async function useItemInInventoryHandler(interaction: ChatInputCommandInt
     })
 
     if (!inventoryItem) {
-        await interaction.reply(`Предмета в инвентаре не существует`)
+        await interaction.editReply(`Предмета в инвентаре не существует`)
         return
     }
 
     const effect: AbstractEffect|null = inventoryItem.item.getEffect()
     if (!effect) {
-        await interaction.reply(`У данного предмета нет эффекта`)
+        await interaction.editReply(`У данного предмета нет эффекта`)
         return
     }
 
@@ -26,6 +26,6 @@ export async function useItemInInventoryHandler(interaction: ChatInputCommandInt
         await effect.onDelete(interaction, inventoryItem)
     } catch (e) {
         console.log('Ошибка выполнения эффекта', e)
-        await interaction.reply('Не удалось выполнить эффект')
+        await interaction.editReply('Не удалось выполнить эффект')
     }
 }

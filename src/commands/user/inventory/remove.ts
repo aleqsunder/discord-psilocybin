@@ -11,7 +11,7 @@ export const remove: SlashCommandSubcommandBuilder = new SlashCommandSubcommandB
     )
     .addStringOption(option =>
         option
-            .setName('item')
+            .setName('user-item')
             .setDescription('Предмет')
             .setRequired(true)
             .setAutocomplete(true)

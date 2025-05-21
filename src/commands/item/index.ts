@@ -2,6 +2,7 @@ import {SlashCommandBuilder} from 'discord.js'
 import {create} from './create'
 import {edit} from './edit'
 import {list} from './list'
+import {remove} from './remove'
 
 export const item = new SlashCommandBuilder()
 	.setName('item')
@@ -9,4 +10,5 @@ export const item = new SlashCommandBuilder()
 	.addSubcommand(create)
 	.addSubcommand(edit)
 	.addSubcommand(list)
+	.addSubcommand(remove)
 	.toJSON()

@@ -4,6 +4,7 @@ import {edit} from './edit'
 import {list} from './list'
 import {open} from './open'
 import {show} from './show'
+import {remove} from './remove'
 
 export const caseCommand = new SlashCommandBuilder()
 	.setName('case')
@@ -13,4 +14,5 @@ export const caseCommand = new SlashCommandBuilder()
 	.addSubcommand(list)
 	.addSubcommand(open)
 	.addSubcommand(show)
+	.addSubcommand(remove)
 	.toJSON()

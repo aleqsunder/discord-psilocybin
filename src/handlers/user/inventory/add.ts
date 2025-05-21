@@ -9,7 +9,7 @@ import {isAdmin} from '../../../utils/permissionUtils'
 
 export async function addItemInInventoryHandler(interaction: ChatInputCommandInteraction): Promise<void> {
     if (!isAdmin(interaction)) {
-        await interaction.reply(`У вас недостаточно прав для выполнения данной команды`)
+        await interaction.editReply(`У вас недостаточно прав для выполнения данной команды`)
         return
     }
 
@@ -24,7 +24,7 @@ export async function addItemInInventoryHandler(interaction: ChatInputCommandInt
     })
 
     if (!item) {
-        await interaction.reply(`Предмета не существует`)
+        await interaction.editReply(`Предмета не существует`)
         return
     }
 
@@ -48,7 +48,7 @@ export async function addItemInInventoryHandler(interaction: ChatInputCommandInt
         await inventoryItem.save()
     } catch (error) {
         console.error(error)
-        await interaction.reply(`Не удалось добавить предмет, внутренняя ошибка`)
+        await interaction.editReply(`Не удалось добавить предмет, внутренняя ошибка`)
         return
     }
 
@@ -62,7 +62,7 @@ export async function addItemInInventoryHandler(interaction: ChatInputCommandInt
         .setImage(`attachment://${path.basename(item.imagePath)}`)
         .setColor((item.quality?.colorHex ?? '#808080') as ColorResolvable)
 
-    await interaction.reply({
+    await interaction.editReply({
         embeds: [embed],
         files: [attachment],
         content: `Предмет добавлен в инвентарь пользователю <@${user.id}>`

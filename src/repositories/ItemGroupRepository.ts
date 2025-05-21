@@ -12,6 +12,10 @@ function filterItemGroupsList(qb: SelectQueryBuilder<ItemGroup>, filter: ItemGro
 		qb.andWhere('group.server_id = :serverId', {serverId: filter.serverId})
 	}
 
+	if (filter.name) {
+		qb.andWhere('group.name LIKE :name', {name: `%${filter.name}%`})
+	}
+
 	return qb
 }
 

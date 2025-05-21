@@ -13,6 +13,6 @@ export class Inventory extends BaseEntity {
 	@Column({name: 'user_id', type: 'text'})
 	userId!: Snowflake
 
-	@OneToMany(() => InventoryItem, item => item.inventory)
+	@OneToMany(() => InventoryItem, item => item.inventory, {cascade: true})
 	items!: InventoryItem[]
 }

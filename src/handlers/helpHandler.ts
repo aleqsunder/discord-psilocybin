@@ -34,7 +34,7 @@ export async function helpHandler(interaction: ChatInputCommandInteraction): Pro
     if (typeof commandName === 'string') {
         let filteredCommandList: PsilocybinCommand[] = commands.filter(command => command.name.includes(commandName))
         if (filteredCommandList.length === 0) {
-            await interaction.reply(`Команда ${commandName} не существует в списке`)
+            await interaction.editReply(`Команда ${commandName} не существует в списке`)
             return
         }
 
@@ -42,7 +42,7 @@ export async function helpHandler(interaction: ChatInputCommandInteraction): Pro
     }
 
     if (typeof commandName === 'string' && command === null) {
-        await interaction.reply('У команды нет сабкомманд или переменных')
+        await interaction.editReply('У команды нет сабкомманд или переменных')
         return
     }
 
@@ -51,7 +51,7 @@ export async function helpHandler(interaction: ChatInputCommandInteraction): Pro
         .map(cmd => commandMap(cmd, command !== null ? command.name : null))
         .join('\n')
 
-    await interaction.reply({
+    await interaction.editReply({
         content: `## ${AVAILABLE_COMMANDS}\n${helpMessage}\n### ${ADDITIONAL_INFO}`
     })
 }

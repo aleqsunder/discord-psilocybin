@@ -3,7 +3,7 @@ import {
 	AttachmentBuilder,
 	ButtonBuilder,
 	ButtonInteraction,
-	ChatInputCommandInteraction, InteractionReplyOptions, InteractionUpdateOptions
+	ChatInputCommandInteraction, InteractionEditReplyOptions, InteractionUpdateOptions
 } from 'discord.js'
 import ItemRepository, {ItemRepositoryFilter} from '../../repositories/ItemRepository'
 import {Item} from '../../entities/psilocybin/Item'
@@ -17,7 +17,7 @@ export async function formatItemListPageAction(interaction: ChatInputCommandInte
 
 	const count: number = await ItemRepository.getListCount(filter)
 	if (count === 0) {
-		await interaction.reply(`Список предметов сервера пуст`)
+		await interaction.editReply(`Список предметов сервера пуст`)
 		return
 	}
 
@@ -26,13 +26,13 @@ export async function formatItemListPageAction(interaction: ChatInputCommandInte
 	const pages: number = Math.ceil(count / countPerPage)
 
 	if (page > pages) {
-		await interaction.reply(`Страница ${page} не входит в диапазон страниц от 1 до ${pages}`)
+		await interaction.editReply(`Страница ${page} не входит в диапазон страниц от 1 до ${pages}`)
 		return
 	}
 
 	const items: Item[] = await ItemRepository.getList(page, countPerPage, filter)
 	const attachment: AttachmentBuilder = await listItemsToAttachment(items)
-	let options: InteractionReplyOptions = {
+	let options: InteractionEditReplyOptions = {
 		files: [attachment],
 	}
 
@@ -44,7 +44,7 @@ export async function formatItemListPageAction(interaction: ChatInputCommandInte
 	if (interaction.isButton()) {
 		await interaction.update(options as InteractionUpdateOptions)
 	} else {
-		await interaction.reply(options)
+		await interaction.editReply(options)
 	}
 }
 

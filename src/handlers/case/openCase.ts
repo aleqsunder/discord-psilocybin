@@ -25,12 +25,13 @@ import {writeFile} from 'fs/promises'
 import {MuhomorUser} from '../../entities/MuhomorUser'
 import MuhomorUserRepository from '../../repositories/MuhomorUserRepository'
 import {use} from '../../commands/user/inventory/use'
+import {truncateTextWithEllipsis} from '../../utils/paginationUtils'
 const execAsync = promisify(exec)
 
 const canvasWidth: number = 500
 const canvasHeight: number = 180
 const fps: number = 20
-const durationDeceleration: number = 4
+const durationDeceleration: number = 8
 const speedAtMax = 100
 
 const itemsCount: number = 30
@@ -75,7 +76,8 @@ async function animate(items: Item[]): Promise<Buffer> {
         const speed: number = Math.min(speedAtMax * t ** 3, speedAtMax)
 
         currentScroll -= speed
-        ctx.clearRect(0, 0, canvasWidth, canvasHeight)
+        ctx.fillStyle = '#323339'
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
 
         const visibleStartIndex: number = Math.max(Math.floor(currentScroll / itemWidth) - 1, 0)
         const visibleEndIndex: number = visibleStartIndex + Math.ceil(canvasWidth / itemWidth) + 2
@@ -101,11 +103,15 @@ async function animate(items: Item[]): Promise<Buffer> {
 
             ctx.font = '100 13px serif'
             ctx.fillStyle = '#FFFFFF'
-            ctx.fillText(name, imageX, itemHeight)
+
+            const nameTruncated: string = truncateTextWithEllipsis(ctx, name ?? '', itemWidthContext)
+            ctx.fillText(nameTruncated, imageX, itemHeight)
 
             ctx.font = '100 11px serif'
             ctx.fillStyle = descriptionColor
-            ctx.fillText(description, imageX, itemHeight + 14)
+
+            const descriptionTruncated: string = truncateTextWithEllipsis(ctx, description ?? '', itemWidthContext)
+            ctx.fillText(descriptionTruncated, imageX, itemHeight + 14)
 
             const centerX: number = canvasWidth / 2
             const itemCenterX: number = x + itemWidth / 2
@@ -173,17 +179,15 @@ export async function openCaseHandler(interaction: ChatInputCommandInteraction):
     })
 
     if (!caseEntity) {
-        await interaction.reply(`Кейс не найден`)
+        await interaction.editReply(`Кейс не найден`)
         return
     }
 
     const user: MuhomorUser = await MuhomorUserRepository.getCurrentUser(interaction)
     if (user.points < caseEntity.cost) {
-        await interaction.reply(`У вас нет денег даже на кейс :index_pointing_at_the_viewer::joy:`)
+        await interaction.editReply(`У вас нет денег даже на кейс :index_pointing_at_the_viewer::joy:`)
         return
     }
-
-    await interaction.deferReply()
 
     try {
         const items: Item[] = caseEntity.items

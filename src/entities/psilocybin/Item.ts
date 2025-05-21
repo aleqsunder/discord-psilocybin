@@ -21,11 +21,11 @@ export class Item extends BaseEntity {
 	@Column({type: 'text', length: 1000})
 	description!: string
 
-	@ManyToOne(() => ItemGroup, group => group.items, {nullable: true})
+	@ManyToOne(() => ItemGroup, group => group.items, {nullable: true, onDelete: 'SET NULL'})
 	@JoinColumn({name: 'group_id'})
 	group!: ItemGroup|null
 
-	@OneToOne(() => ItemQuality, quality => quality.item, {nullable: true})
+	@OneToOne(() => ItemQuality, quality => quality.item, {nullable: true, onDelete: 'SET NULL'})
 	@JoinColumn({name: 'quality_id'})
 	quality!: ItemQuality|null
 
@@ -35,7 +35,7 @@ export class Item extends BaseEntity {
 	@Column({type: 'text', name: 'image_path', nullable: false})
 	imagePath!: string
 
-	@OneToMany(() => InventoryItem, inventoryItem => inventoryItem.item)
+	@OneToMany(() => InventoryItem, inventoryItem => inventoryItem.item, {cascade: true})
 	inventories!: InventoryItem[]
 
 	public async getImage(): Promise<Image> {

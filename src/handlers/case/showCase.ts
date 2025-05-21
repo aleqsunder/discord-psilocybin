@@ -2,8 +2,8 @@ import {
     ActionRowBuilder,
     AttachmentBuilder,
     ButtonBuilder, ButtonInteraction,
-    ChatInputCommandInteraction,
-    InteractionReplyOptions, InteractionUpdateOptions
+    ChatInputCommandInteraction, InteractionEditReplyOptions,
+    InteractionUpdateOptions, Message
 } from 'discord.js'
 import {ItemGroup} from '../../entities/psilocybin/ItemGroup'
 import ItemGroupRepository from '../../repositories/ItemGroupRepository'
@@ -19,7 +19,7 @@ export async function formatCasePageAction(
     page: number = 1
 ): Promise<void> {
     if (caseEntity.serverId !== interaction.guildId) {
-        await interaction.reply(`Данный кейс используется на другом сервере`)
+        await interaction.editReply(`Данный кейс используется на другом сервере`)
         return
     }
 
@@ -29,19 +29,19 @@ export async function formatCasePageAction(
     const allItems: Item[] = caseEntity.items
     const count: number = allItems.length
     if (count === 0) {
-        await interaction.reply(`Данный кейс не содержит предметов`)
+        await interaction.editReply(`Данный кейс не содержит предметов`)
         return
     }
 
     const items: Item[] = allItems.slice((page - 1) * countPerPage, page * countPerPage)
     const attachment: AttachmentBuilder = await listItemsToAttachment(items)
-    let options: InteractionReplyOptions = {
+    let options: InteractionEditReplyOptions = {
         files: [attachment],
     }
 
     const pages: number = Math.ceil(count / countPerPage)
     if (page > pages) {
-        await interaction.reply(`Страница ${page} не входит в диапазон страниц от 1 до ${pages}`)
+        await interaction.editReply(`Страница ${page} не входит в диапазон страниц от 1 до ${pages}`)
         return
     }
 
@@ -53,12 +53,9 @@ export async function formatCasePageAction(
     if (interaction.isButton()) {
         await interaction.update(options as InteractionUpdateOptions)
     } else {
-        const reply = await interaction.reply({...options, withResponse: true})
-        if (!reply?.resource?.message) {
-            return
-        }
+        const reply: Message = await interaction.editReply(options)
 
-        PaginationCache.set(reply.resource.message.id, {
+        PaginationCache.set(reply.id, {
             type: PaginationType.CASE_ITEM,
             serverId: interaction.guildId!,
             createdAt: Date.now(),
@@ -79,7 +76,7 @@ export async function showCaseHandler(interaction: ChatInputCommandInteraction):
     })
 
     if (!caseEntity) {
-        await interaction.reply(`Кейс не найден`)
+        await interaction.editReply(`Кейс не найден`)
         return
     }
 

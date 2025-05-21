@@ -2,10 +2,11 @@ import {ChatInputCommandInteraction} from 'discord.js'
 import {createItemQualityHandler} from './createItemQuality'
 import {editItemQualityHandler} from './editItemQuality'
 import {isAdmin} from '../../utils/permissionUtils'
+import {removeItemQualityHandler} from './removeItemQuality'
 
 export async function itemQualityHandler(interaction: ChatInputCommandInteraction): Promise<void> {
 	if (!isAdmin(interaction)) {
-		await interaction.reply(`У вас недостаточно прав для выполнения данной команды`)
+		await interaction.editReply(`У вас недостаточно прав для выполнения данной команды`)
 		return
 	}
 
@@ -13,6 +14,7 @@ export async function itemQualityHandler(interaction: ChatInputCommandInteractio
 	switch (subcommand) {
 		case 'create': return await createItemQualityHandler(interaction)
 		case 'edit': return await editItemQualityHandler(interaction)
+		case 'remove': return await removeItemQualityHandler(interaction)
 		default: throw new Error(`Подкоманда "${subcommand}" не найдена`)
 	}
 }
