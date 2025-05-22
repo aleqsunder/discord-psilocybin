@@ -9,7 +9,7 @@ export const add: SlashCommandSubcommandBuilder = new SlashCommandSubcommandBuil
             .setDescription('Пользователь')
             .setRequired(true)
     )
-    .addStringOption(option =>
+    .addNumberOption(option =>
         option
             .setName('item')
             .setDescription('Предмет')

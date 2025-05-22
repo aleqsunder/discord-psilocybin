@@ -3,7 +3,7 @@ import {SlashCommandSubcommandBuilder} from 'discord.js'
 export const edit: SlashCommandSubcommandBuilder = new SlashCommandSubcommandBuilder()
 	.setName('edit')
 	.setDescription('[Администратор] Редактирование кейса')
-	.addStringOption(option =>
+	.addNumberOption(option =>
 		option
 			.setName('case')
 			.setDescription('Кейс')
@@ -26,11 +26,6 @@ export const edit: SlashCommandSubcommandBuilder = new SlashCommandSubcommandBui
 		option
 			.setName('image')
 			.setDescription('Картинка кейса')
-	)
-	.addBooleanOption(option =>
-		option
-			.setName('available')
-			.setDescription('Доступно для открытия пользователями')
 	)
 	.addNumberOption(option =>
 		option

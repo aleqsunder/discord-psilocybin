@@ -11,6 +11,7 @@ export interface BasePaginationCache {
     type: PaginationType
     serverId: Snowflake
     createdAt: number
+    author: User
 }
 
 export interface InventoryCache extends BasePaginationCache {

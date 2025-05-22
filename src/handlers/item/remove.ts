@@ -9,7 +9,7 @@ export async function removeItemHandler(interaction: ChatInputCommandInteraction
         return
     }
 
-    const itemId: string = interaction.options.getString('item', true)
+    const itemId: number = interaction.options.getNumber('item', true)
     const item: Item|null = await ItemRepository.findOneBy({
         id: Number(itemId),
         serverId: interaction.guildId!,

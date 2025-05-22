@@ -5,6 +5,12 @@ import {guildCreateHandler} from "./events/guildCreate"
 import {registerCommands} from "./events/registerCommands"
 import DisTubeService from './services/DistubeService'
 import {TOKEN} from './constants'
+import {GlobalFonts} from '@napi-rs/canvas'
+import path from 'path'
+
+GlobalFonts.registerFromPath(path.join(__dirname, '../fonts/NotoColorEmoji-Regular.ttf'), 'emojis')
+GlobalFonts.registerFromPath(path.join(__dirname, '../fonts/Montserrat-Medium.ttf'), 'montserrat-medium')
+GlobalFonts.registerFromPath(path.join(__dirname, '../fonts/Montserrat-Light.ttf'), 'montserrat')
 
 export const client: Client = new Client({
     intents: [

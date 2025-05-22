@@ -4,6 +4,7 @@ import {InventoryItem} from '../entities/psilocybin/InventoryItem'
 import {ItemGroup} from '../entities/psilocybin/ItemGroup'
 import {MuhomorUser} from '../entities/MuhomorUser'
 import MuhomorUserRepository from '../repositories/MuhomorUserRepository'
+import {formatMoney} from '../utils/formatUtils'
 
 export class DoubleCaseCostSell extends AbstractEffect {
     removeAfterUse = true
@@ -19,7 +20,7 @@ export class DoubleCaseCostSell extends AbstractEffect {
 
         const doubleCost: number = group.cost * 2
         const user: MuhomorUser = await MuhomorUserRepository.getCurrentUser(interaction)
-        user.points += doubleCost
+        user.points = formatMoney(user.points + doubleCost)
 
         await user.save()
 

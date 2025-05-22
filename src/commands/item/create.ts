@@ -18,14 +18,14 @@ export const create: SlashCommandSubcommandBuilder = new SlashCommandSubcommandB
 			.setRequired(true)
 			.setMaxLength(1000)
 	)
-	.addStringOption(option =>
+	.addNumberOption(option =>
 		option
 			.setName('quality')
 			.setDescription('Качество предмета')
 			.setRequired(true)
 			.setAutocomplete(true)
 	)
-	.addStringOption(option =>
+	.addNumberOption(option =>
 		option
 			.setName('case')
 			.setDescription('Кейс предмета')

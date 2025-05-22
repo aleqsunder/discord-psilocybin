@@ -3,14 +3,14 @@ import {ItemQuality} from '../../entities/psilocybin/ItemQuality'
 import ItemQualityRepository from '../../repositories/ItemQualityRepository'
 
 export async function editItemQualityHandler(interaction: ChatInputCommandInteraction): Promise<void> {
-	const qualityId: string|null = interaction.options.getString('quality')
+	const qualityId: number = interaction.options.getNumber('quality', true)
 	const name: string|null = interaction.options.getString('name')
 	const color: string|null = interaction.options.getString('color')
 	const chance: number|null = interaction.options.getNumber('chance')
 	const sellCost: number|null = interaction.options.getNumber('sell-cost')
 
 	const itemQuality: ItemQuality|null = await ItemQualityRepository.findOneBy({
-		id: Number(qualityId),
+		id: qualityId,
 		serverId: interaction.guildId!,
 	})
 

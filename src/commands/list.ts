@@ -5,10 +5,12 @@ import {quality} from './quality'
 import {user} from './user'
 import {test} from './test'
 import {play} from './play'
+import {randomCaseShortcut} from './case/case'
 
 export const list: PsilocybinCommand[] = [
     help,
     caseCommand,
+    randomCaseShortcut,
     item,
     quality,
     user,

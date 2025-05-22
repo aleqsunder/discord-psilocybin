@@ -38,6 +38,15 @@ class ItemGroupRepository extends Repository<ItemGroup> {
 
 		return count
 	}
+
+	getOneByRandom(filter: ItemGroupRepositoryFilter = {}): Promise<ItemGroup|null> {
+		return this.getListBuilder(filter)
+			.innerJoinAndSelect('group.items', 'item')
+			.innerJoinAndSelect('item.quality', 'quality')
+			.take(1)
+			.orderBy('random()')
+			.getOne()
+	}
 }
 
 export default new ItemGroupRepository(ItemGroup, Psilocybin.createEntityManager())

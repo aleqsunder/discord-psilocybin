@@ -17,7 +17,14 @@ async function caseHandler(interaction: ButtonInteraction, option: string) {
             content: 'Данные о странице устарели',
             flags: MessageFlagsBitField.Flags.Ephemeral
         })
+        return
+    }
 
+    if (interaction.user.id !== cached.author.id) {
+        await interaction.reply({
+            content: `Данная команда вызвана пользователем <@${cached.author.id}>, только он может взаимодействовать с ней`,
+            flags: MessageFlagsBitField.Flags.Ephemeral
+        })
         return
     }
 

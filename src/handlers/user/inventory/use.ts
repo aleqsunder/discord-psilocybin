@@ -4,9 +4,9 @@ import InventoryItemRepository from '../../../repositories/InventoryItemReposito
 import {InventoryItem} from '../../../entities/psilocybin/InventoryItem'
 
 export async function useItemInInventoryHandler(interaction: ChatInputCommandInteraction): Promise<void> {
-    const effectItemId: string = interaction.options.getString('user-item', true)
+    const effectItemId: number = interaction.options.getNumber('effect-item', true)
     const inventoryItem: InventoryItem|null = await InventoryItemRepository.getOneByFilter({
-        id: Number(effectItemId),
+        id: effectItemId,
         serverId: interaction.guildId!,
     })
 

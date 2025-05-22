@@ -3,10 +3,10 @@ import {ItemGroup} from '../../entities/psilocybin/ItemGroup'
 import ItemGroupRepository from '../../repositories/ItemGroupRepository'
 
 export async function removeCaseHandler(interaction: ChatInputCommandInteraction): Promise<void> {
-    const caseId: string = interaction.options.getString('case', true)
+    const caseId: number = interaction.options.getNumber('case', true)
     const caseEntity: ItemGroup|null = await ItemGroupRepository.findOne({
         where: {
-            id: Number(caseId),
+            id: caseId,
             serverId: interaction.guildId!,
         },
         relations: ['items', 'items.quality']

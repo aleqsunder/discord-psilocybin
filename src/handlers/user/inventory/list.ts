@@ -60,6 +60,7 @@ export async function formatInventoryItemListPageAction(interaction: ChatInputCo
             type: PaginationType.INVENTORY,
             serverId: interaction.guildId!,
             createdAt: Date.now(),
+            author: interaction.user!,
             user,
         })
     }

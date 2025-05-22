@@ -2,7 +2,7 @@ import {AttachmentBuilder, ChatInputCommandInteraction} from 'discord.js'
 import {ItemGroup} from '../../entities/psilocybin/ItemGroup'
 import ItemGroupRepository from '../../repositories/ItemGroupRepository'
 import {Item} from '../../entities/psilocybin/Item'
-import {generateWeightedRandomItems} from '../../utils/inventoryUtils'
+import {drawEmoji, generateWeightedRandomItems} from '../../utils/inventoryUtils'
 import {Canvas, createCanvas, Image, loadImage, SKRSContext2D} from '@napi-rs/canvas'
 import {drawRoundedImage} from '../../utils/imageUtils'
 import {
@@ -25,6 +25,7 @@ import {writeFile} from 'fs/promises'
 import {MuhomorUser} from '../../entities/MuhomorUser'
 import MuhomorUserRepository from '../../repositories/MuhomorUserRepository'
 import {truncateTextWithEllipsis} from '../../utils/paginationUtils'
+import {formatMoney} from '../../utils/formatUtils'
 const execAsync = promisify(exec)
 
 const canvasWidth: number = 500
@@ -43,6 +44,7 @@ interface ImageContainer {
     name: string
     description: string
     descriptionColor: string
+    effectShortName?: string
 }
 
 async function animate(items: Item[]): Promise<Buffer> {
@@ -53,7 +55,8 @@ async function animate(items: Item[]): Promise<Buffer> {
             image: await item.getImage(),
             name: item.name,
             description: item.quality?.name ?? '...',
-            descriptionColor: item.quality?.colorHex ?? '#808080'
+            descriptionColor: item.quality?.colorHex ?? '#808080',
+            effectShortName: item.getEffect()?.getShortName(),
         })
     }
 
@@ -88,7 +91,7 @@ async function animate(items: Item[]): Promise<Buffer> {
             }
 
             const index: number = i % images.length
-            const {image, name, description, descriptionColor} = images[index]
+            const {image, name, description, descriptionColor, effectShortName} = images[index]
             const imageX: number = x + itemPadding
 
             ctx.save()
@@ -102,13 +105,13 @@ async function animate(items: Item[]): Promise<Buffer> {
             ctx.clip()
             ctx.restore()
 
-            ctx.font = '100 12px serif'
+            ctx.font = '100 13px "montserrat", serif'
             ctx.fillStyle = '#FFFFFF'
 
             const nameTruncated: string = truncateTextWithEllipsis(ctx, name ?? '', itemWidthContext - 18)
             ctx.fillText(nameTruncated, imageX + 6, itemHeight - 4)
 
-            ctx.font = '100 10px serif'
+            ctx.font = '100 10px "montserrat-medium", serif'
             ctx.fillStyle = descriptionColor
 
             const descriptionTruncated: string = truncateTextWithEllipsis(ctx, description ?? '', itemWidthContext - 18)
@@ -123,6 +126,17 @@ async function animate(items: Item[]): Promise<Buffer> {
                 itemHeight - itemPadding * 2,
                 10
             )
+
+            if (effectShortName) {
+                drawEmoji(
+                    ctx,
+                    effectShortName,
+                    imageX + itemWidth - itemPadding * 2,
+                    itemPadding + itemHeight - itemPadding * 2,
+                    14,
+                    4
+                )
+            }
 
             const centerX: number = canvasWidth / 2
             const itemCenterX: number = x + itemWidth / 2
@@ -179,11 +193,61 @@ async function cleanupTempFiles(tempDir: string, gifPath: string): Promise<void>
     }
 }
 
+async function execute(index: number, interaction: ChatInputCommandInteraction, items: Item[]): Promise<void> {
+    const randomItems: Item[] = generateWeightedRandomItems(items, itemsCount)
+
+    const gifData: Buffer<ArrayBufferLike> = await animate(randomItems)
+    const gifAttachment: AttachmentBuilder = new AttachmentBuilder(gifData, {
+        name: 'slot-machine.gif',
+        description: 'Анимация прокрутки'
+    })
+
+    const winnerItem: Item = randomItems[randomItems.length - 1]
+    const userInventory: Inventory = await InventoryRepository.getCurrentInventory(interaction)
+
+    const inventoryItem: InventoryItem = new InventoryItem()
+    inventoryItem.item = winnerItem
+    inventoryItem.inventory = userInventory
+    await inventoryItem.save()
+
+    const options = {
+        files: [gifAttachment]
+    }
+
+    if (index === 0) {
+        await interaction.editReply(options)
+    } else {
+        await interaction.followUp(options)
+    }
+}
+
+async function executeOpenCaseHandler(caseEntity: ItemGroup, interaction: ChatInputCommandInteraction): Promise<void> {
+    const user: MuhomorUser = await MuhomorUserRepository.getCurrentUser(interaction)
+    const count: number = interaction.options.getNumber('count') ?? 1
+    if (user.points < caseEntity.cost * count) {
+        await interaction.editReply(`У вас нет денег ДАЖЕ на кейс :index_pointing_at_the_viewer::joy:`)
+        return
+    }
+
+    try {
+        user.points = formatMoney(user.points - caseEntity.cost * count)
+        await user.save()
+
+        const items: Item[] = caseEntity.items
+        for (let index: number = 0; index < count; index++) {
+            await execute(index, interaction, items)
+        }
+    } catch (error) {
+        console.error('Ошибка:', error)
+        await interaction.editReply('Что-то пошло не так!')
+    }
+}
+
 export async function openCaseHandler(interaction: ChatInputCommandInteraction): Promise<void> {
-    const caseId: string = interaction.options.getString('case', true)
+    const caseId: number = interaction.options.getNumber('case', true)
     const caseEntity: ItemGroup|null = await ItemGroupRepository.findOne({
         where: {
-            id: Number(caseId),
+            id: caseId,
             serverId: interaction.guildId!
         },
         relations: ['items', 'items.quality']
@@ -194,39 +258,19 @@ export async function openCaseHandler(interaction: ChatInputCommandInteraction):
         return
     }
 
-    const user: MuhomorUser = await MuhomorUserRepository.getCurrentUser(interaction)
-    if (user.points < caseEntity.cost) {
-        await interaction.editReply(`У вас нет денег даже на кейс :index_pointing_at_the_viewer::joy:`)
+    await executeOpenCaseHandler(caseEntity, interaction)
+}
+
+export async function openRandomCaseHandler(interaction: ChatInputCommandInteraction): Promise<void> {
+    await interaction.deferReply()
+    const caseEntity: ItemGroup|null = await ItemGroupRepository.getOneByRandom({
+        serverId: interaction.guildId!
+    })
+
+    if (!caseEntity) {
+        await interaction.editReply(`Кейс не найден`)
         return
     }
 
-    try {
-        const items: Item[] = caseEntity.items
-        const randomItems: Item[] = generateWeightedRandomItems(items, itemsCount)
-
-        const gifData: Buffer<ArrayBufferLike> = await animate(randomItems)
-
-        const gifAttachment: AttachmentBuilder = new AttachmentBuilder(gifData, {
-            name: 'slot-machine.gif',
-            description: 'Анимация прокрутки'
-        })
-
-        const winnerItem: Item = randomItems[randomItems.length - 1]
-        const userInventory: Inventory = await InventoryRepository.getCurrentInventory(interaction)
-
-        const inventoryItem: InventoryItem = new InventoryItem()
-        inventoryItem.item = winnerItem
-        inventoryItem.inventory = userInventory
-        await inventoryItem.save()
-
-        user.points -= caseEntity.cost
-        await user.save()
-
-        await interaction.editReply({
-            files: [gifAttachment]
-        })
-    } catch (error) {
-        console.error('Ошибка:', error)
-        await interaction.editReply('Что-то пошло не так!')
-    }
+    await executeOpenCaseHandler(caseEntity, interaction)
 }

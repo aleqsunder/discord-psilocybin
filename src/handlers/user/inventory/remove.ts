@@ -12,9 +12,9 @@ export async function removeItemInInventoryHandler(interaction: ChatInputCommand
     }
 
     const user: User = interaction.options.getUser('user', true)
-    const userItemId: string = interaction.options.getString('user-item', true)
+    const userItemId: number = interaction.options.getNumber('user-item', true)
     const inventoryItem: InventoryItem|null = await InventoryItemRepository.getOneByFilter({
-        id: Number(userItemId),
+        id: userItemId,
         userId: user.id,
         serverId: interaction.guildId!,
     })

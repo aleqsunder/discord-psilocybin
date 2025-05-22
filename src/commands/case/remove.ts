@@ -3,7 +3,7 @@ import {SlashCommandSubcommandBuilder} from 'discord.js'
 export const remove: SlashCommandSubcommandBuilder = new SlashCommandSubcommandBuilder()
     .setName('remove')
     .setDescription('Удаление кейса')
-    .addStringOption(option =>
+    .addNumberOption(option =>
         option
             .setName('case')
             .setDescription('Кейс')

@@ -1,4 +1,4 @@
-import {Repository, SelectQueryBuilder} from 'typeorm'
+import {IsNull, Repository, SelectQueryBuilder} from 'typeorm'
 import {InventoryItem} from '../entities/psilocybin/InventoryItem'
 import {ItemRepositoryFilter} from './ItemRepository'
 import {Psilocybin} from '../database/psilocybin'
@@ -25,10 +25,6 @@ function filterItemsList(qb: SelectQueryBuilder<InventoryItem>, filter: ItemRepo
         qb.andWhere('i.name LIKE :name', {name: `%${filter.name}%`})
     }
 
-    if (filter.groupBy) {
-        qb.groupBy(`i.${filter.groupBy}`)
-    }
-
     if (filter.effect) {
         qb.andWhere('i.effect = :effect', {effect: filter.effect})
     }
@@ -51,6 +47,18 @@ class InventoryItemRepository extends Repository<InventoryItem> {
             .leftJoinAndSelect('i.quality', 'q')
             .skip((page - 1) * countPerPage)
             .take(countPerPage)
+            .orderBy('q.chance', 'ASC')
+            .getMany()
+    }
+
+    getEffectLikeList(page: number = 1, countPerPage: number = 30, filter: ItemRepositoryFilter = {}): Promise<InventoryItem[]> {
+        return this.getListBuilder(filter)
+            .leftJoinAndSelect('i.quality', 'q')
+            .andWhere('i.effect is not null')
+            .skip((page - 1) * countPerPage)
+            .take(countPerPage)
+            .orderBy('q.chance', 'ASC')
+            .groupBy('i.effect')
             .getMany()
     }
 

@@ -3,6 +3,7 @@ import {createItemHandler} from './createItem'
 import {editItemHandler} from './editItem'
 import {listItemHandler} from './list'
 import {removeItemHandler} from './remove'
+import {infoItemHandler} from './infoItem'
 
 export async function itemHandler(interaction: ChatInputCommandInteraction): Promise<void> {
 	await interaction.deferReply()
@@ -13,6 +14,7 @@ export async function itemHandler(interaction: ChatInputCommandInteraction): Pro
 		case 'edit': return await editItemHandler(interaction)
 		case 'list': return await listItemHandler(interaction)
 		case 'remove': return await removeItemHandler(interaction)
+		case 'info': return await infoItemHandler(interaction)
 		default: throw new Error(`Подкоманда "${subcommand}" не найдена`)
 	}
 }

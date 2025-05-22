@@ -16,10 +16,10 @@ export async function addItemInInventoryHandler(interaction: ChatInputCommandInt
     }
 
     const user: User = interaction.options.getUser('user', true)
-    const itemId: string = interaction.options.getString('item', true)
+    const itemId: number = interaction.options.getNumber('item', true)
     const item: Item|null = await ItemRepository.findOne({
         where: {
-            id: Number(itemId),
+            id: itemId,
             serverId: interaction.guildId!,
         },
         relations: ['quality']

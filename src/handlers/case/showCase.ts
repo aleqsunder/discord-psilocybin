@@ -59,6 +59,7 @@ export async function formatCasePageAction(
             type: PaginationType.CASE_ITEM,
             serverId: interaction.guildId!,
             createdAt: Date.now(),
+            author: interaction.user!,
             caseEntity,
         })
     }
@@ -66,10 +67,10 @@ export async function formatCasePageAction(
 
 export async function showCaseHandler(interaction: ChatInputCommandInteraction): Promise<void> {
     const page: number = interaction.options.getNumber('page') ?? 1
-    const caseId: string = interaction.options.getString('case', true)
+    const caseId: number = interaction.options.getNumber('case', true)
     const caseEntity: ItemGroup|null = await ItemGroupRepository.findOne({
         where: {
-            id: Number(caseId),
+            id: caseId,
             serverId: interaction.guildId!,
         },
         relations: ['items', 'items.quality']

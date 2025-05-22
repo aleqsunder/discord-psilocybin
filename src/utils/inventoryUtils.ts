@@ -1,9 +1,10 @@
 import {Item} from '../entities/psilocybin/Item'
 import {Canvas, createCanvas, loadImage, SKRSContext2D} from '@napi-rs/canvas'
-import {AttachmentBuilder} from 'discord.js'
+import {AttachmentBuilder, ChatInputCommandInteraction, ColorResolvable, EmbedBuilder} from 'discord.js'
 import {truncateTextWithEllipsis} from './paginationUtils'
 import {ItemGroup} from '../entities/psilocybin/ItemGroup'
 import {ItemQuality} from '../entities/psilocybin/ItemQuality'
+import path from 'path'
 
 export const defaultListImageConfig: RequiredListImageConfig = {
 	rows: 2,
@@ -18,6 +19,7 @@ export interface ListItemConfig {
 	name: string
 	description?: string
 	descriptionColor?: string
+	effectShortName?: string
 }
 
 export async function generateList(items: ListItemConfig[], config?: ListImageConfig) {
@@ -61,15 +63,19 @@ export async function generateList(items: ListItemConfig[], config?: ListImageCo
 		context.drawImage(image, x, y, sizeWithoutPadding, sizeWithoutPadding)
 		context.restore()
 
+		if (item.effectShortName) {
+			drawEmoji(context, item.effectShortName, x + sizeWithoutPadding, y + sizeWithoutPadding)
+		}
+
 		const nameY: number = y + fullConfig.imageSize + 10
-		context.font = `${nameHeight}px serif`
+		context.font = `${nameHeight}px "montserrat-medium", serif`
 		context.fillStyle = "#FFFFFF"
 
 		const nameTruncated = truncateTextWithEllipsis(context, item.name, sizeWithoutPadding)
 		context.fillText(nameTruncated, x, nameY)
 
 		const descriptionY: number = nameY + nameHeight
-		context.font = `${qualityHeight}px serif`
+		context.font = `${qualityHeight}px "montserrat-medium", serif`
 		context.fillStyle = item.descriptionColor ?? '#808080'
 
 		const qualityNameTruncated = truncateTextWithEllipsis(context, item.description ?? '', sizeWithoutPadding)
@@ -77,6 +83,48 @@ export async function generateList(items: ListItemConfig[], config?: ListImageCo
 	}
 
 	return new AttachmentBuilder(await canvas.encode('png'), {name: 'background.png'})
+}
+
+export function drawEmoji(
+	context: SKRSContext2D,
+	text: string, x: number, y: number,
+	fontSize: number = 26,
+	emojiPadding: number = 10
+) {
+	context.save()
+
+	context.font = `${fontSize}px "emojis", sans-serif`
+	context.textAlign = 'end'
+	context.textBaseline = 'bottom'
+
+	const textWidth: number = context.measureText(text).width
+	const textHeight: number = fontSize
+
+	const backgroundWidth: number = textWidth + emojiPadding * 2
+	const backgroundHeight: number = textHeight + emojiPadding * 2
+
+	drawRoundedRect(context, x - backgroundWidth, y - backgroundHeight, backgroundWidth, backgroundHeight, emojiPadding)
+
+	context.fillStyle = 'rgba(0, 0, 0, 0.8)'
+	context.fill()
+
+	context.fillStyle = 'black'
+	context.fillText(text, x - emojiPadding, y - emojiPadding / 2)
+	context.restore()
+}
+
+function drawRoundedRect(ctx: SKRSContext2D, x: number, y: number, width: number, height: number, radius: number) {
+	ctx.beginPath()
+	ctx.moveTo(x + radius, y)
+	ctx.lineTo(x + width - radius, y)
+	ctx.quadraticCurveTo(x + width, y, x + width, y + radius)
+	ctx.lineTo(x + width, y + height - radius)
+	ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height)
+	ctx.lineTo(x + radius, y + height)
+	ctx.quadraticCurveTo(x, y + height, x, y + height - radius)
+	ctx.lineTo(x, y + radius)
+	ctx.quadraticCurveTo(x, y, x + radius, y)
+	ctx.closePath()
 }
 
 export async function listItemsToAttachment(items: Item[], config?: ListImageConfig): Promise<AttachmentBuilder> {
@@ -88,6 +136,7 @@ export async function listItemsToAttachment(items: Item[], config?: ListImageCon
 			name: item.name,
 			description: item.quality?.name ?? '...',
 			descriptionColor: item.quality?.colorHex ?? '#808080',
+			effectShortName: item.getEffect()?.getShortName()
 		})
 	}
 
@@ -152,4 +201,30 @@ export function generateWeightedRandomItems(items: Item[], size: number): Item[]
 	}
 
 	return result
+}
+
+export async function generateInfoAttachment(item: Item, interaction: ChatInputCommandInteraction) {
+	const fields = []
+
+	if (item.quality) {
+		fields.push({name: 'Качество', value: item.quality?.name ?? ''})
+	}
+
+	if (item.group) {
+		fields.push({name: 'Кейс', value: item.group?.name ?? ''})
+	}
+
+	if (item.getEffect()) {
+		fields.push({name: 'Эффект', value: item.getEffect()?.getName() ?? ''})
+	}
+
+	const attachment = new AttachmentBuilder(item.imagePath, {name: path.basename(item.imagePath)})
+	const embed: EmbedBuilder = new EmbedBuilder()
+		.setTitle(`Предмет "${item.name}" (id: ${item.id})`)
+		.setDescription(item.description)
+		.addFields(fields)
+		.setImage(`attachment://${path.basename(item.imagePath)}`)
+		.setColor(item.quality?.colorHex as ColorResolvable ?? 0x333)
+
+	await interaction.editReply({embeds: [embed], files: [attachment]})
 }

@@ -3,6 +3,7 @@ import {create} from './create'
 import {edit} from './edit'
 import {list} from './list'
 import {remove} from './remove'
+import {info} from './info'
 
 export const item = new SlashCommandBuilder()
 	.setName('item')
@@ -11,4 +12,5 @@ export const item = new SlashCommandBuilder()
 	.addSubcommand(edit)
 	.addSubcommand(list)
 	.addSubcommand(remove)
+	.addSubcommand(info)
 	.toJSON()

@@ -5,7 +5,7 @@ export class MusicEffect extends AbstractEffect {
     removeAfterUse = false
 
     name = 'Использование музыкального бота'
-    shortName = '▶ ⏸'
+    shortName = '▶⏸'
     description = 'Позволяет использовать музыкального бота, если этот предмет находится в инвентаре'
 
     async onEffect(interaction: ChatInputCommandInteraction): Promise<void> {

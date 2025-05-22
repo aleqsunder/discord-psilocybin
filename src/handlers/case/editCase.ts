@@ -12,13 +12,13 @@ export async function editCaseHandler(interaction: ChatInputCommandInteraction):
 		return
 	}
 
-	const groupId: string = interaction.options.getString('case', true)
+	const groupId: number = interaction.options.getNumber('case', true)
 	const name: string|null = interaction.options.getString('name')
 	const description: string|null = interaction.options.getString('description')
 	const image: Attachment|null = interaction.options.getAttachment('image')
 	const cost: number|null = interaction.options.getNumber('cost')
 
-	const group: ItemGroup|null = await ItemGroupRepository.findOneBy({id: Number(groupId)})
+	const group: ItemGroup|null = await ItemGroupRepository.findOneBy({id: groupId})
 	if (!group) {
 		await interaction.editReply(`Группа не существует`)
 		return

@@ -4,7 +4,7 @@ import {EffectMap, EffectType} from '../../factories/EffectFactory'
 export const edit: SlashCommandSubcommandBuilder = new SlashCommandSubcommandBuilder()
 	.setName('edit')
 	.setDescription('[Администратор] Редактирование предмета')
-	.addStringOption(option =>
+	.addNumberOption(option =>
 		option
 			.setName('item')
 			.setDescription('Предмет')
@@ -23,13 +23,13 @@ export const edit: SlashCommandSubcommandBuilder = new SlashCommandSubcommandBui
 			.setDescription('Описание предмета')
 			.setMaxLength(1000)
 	)
-	.addStringOption(option =>
+	.addNumberOption(option =>
 		option
 			.setName('quality')
 			.setDescription('Качество предмета')
 			.setAutocomplete(true)
 	)
-	.addStringOption(option =>
+	.addNumberOption(option =>
 		option
 			.setName('case')
 			.setDescription('Кейс предмета')

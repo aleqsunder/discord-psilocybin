@@ -15,6 +15,7 @@ import {testHandler} from '../handlers/test'
 import musicHandler from '../handlers/music'
 import process from 'process'
 import {isAdmin} from '../utils/permissionUtils'
+import {openRandomCaseHandler} from '../handlers/case/openCase'
 
 export async function interactionCreateHandler(interaction: Interaction): Promise<void> {
     const PSILOCYBIN_AVAILABLE_TO_USE_DEFAULT_USERS: boolean = process.env.PSILOCYBIN_AVAILABLE_TO_USE_DEFAULT_USERS === 'true'
@@ -45,10 +46,12 @@ export async function interactionCreateHandler(interaction: Interaction): Promis
             case 'help': return await helpHandler(interaction)
             case 'item': return await itemHandler(interaction)
             case 'quality': return await itemQualityHandler(interaction)
-            case 'case': return await itemCaseHandler(interaction)
             case 'user': return await userHandler(interaction)
             case 'test': return await testHandler(interaction)
             case 'play': return await musicHandler(interaction)
+
+            case 'case': return await itemCaseHandler(interaction)
+            case 'random-case': return await openRandomCaseHandler(interaction)
         }
 
         new Error(`Несуществующая команда ${interaction.commandName}`)

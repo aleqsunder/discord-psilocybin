@@ -1,7 +1,6 @@
-import path from 'path'
 import {ItemQuality} from '../../entities/psilocybin/ItemQuality'
 import {ItemGroup} from '../../entities/psilocybin/ItemGroup'
-import {Attachment, AttachmentBuilder, ChatInputCommandInteraction, ColorResolvable, EmbedBuilder} from 'discord.js'
+import {Attachment, ChatInputCommandInteraction} from 'discord.js'
 import {Item} from '../../entities/psilocybin/Item'
 import {DEFAULT_ITEM_IMAGE_PATH, DEFAULT_ITEMS_CATALOG} from '../../constants'
 import {saveImageToStorage} from '../../utils/imageUtils'
@@ -9,6 +8,7 @@ import ItemQualityRepository from '../../repositories/ItemQualityRepository'
 import ItemGroupRepository from '../../repositories/ItemGroupRepository'
 import {isAdmin} from '../../utils/permissionUtils'
 import {EffectType} from '../../factories/EffectFactory'
+import {generateInfoAttachment} from '../../utils/inventoryUtils'
 
 export async function createItemHandler(interaction: ChatInputCommandInteraction): Promise<void> {
 	if (!isAdmin(interaction)) {
@@ -18,9 +18,8 @@ export async function createItemHandler(interaction: ChatInputCommandInteraction
 
 	const name: string = interaction.options.getString('name', true)
 	const description: string = interaction.options.getString('description', true)
-	const qualityId: string|null = interaction.options.getString('quality')
-	const caseId: string|null = interaction.options.getString('case')
-	const groupId: string|null = interaction.options.getString('group')
+	const qualityId: number|null = interaction.options.getNumber('quality')
+	const caseId: number|null = interaction.options.getNumber('case')
 	const image: Attachment|null = interaction.options.getAttachment('image')
 	const effectType = interaction.options.getString('effect') as EffectType
 
@@ -31,7 +30,7 @@ export async function createItemHandler(interaction: ChatInputCommandInteraction
 
 	if (qualityId) {
 		const itemQuality: ItemQuality | null = await ItemQualityRepository.findOneBy({
-			id: Number(qualityId),
+			id: qualityId,
 			serverId: interaction.guildId!,
 		})
 
@@ -45,26 +44,12 @@ export async function createItemHandler(interaction: ChatInputCommandInteraction
 
 	if (caseId) {
 		const itemGroup: ItemGroup|null = await ItemGroupRepository.findOneBy({
-			id: Number(caseId),
+			id: caseId,
 			serverId: interaction.guildId!,
 		})
 
 		if (!itemGroup) {
 			await interaction.editReply(`Кейса не существует`)
-			return
-		}
-
-		item.group = itemGroup
-	}
-
-	if (groupId) {
-		const itemGroup: ItemGroup | null = await ItemGroupRepository.findOneBy({
-			id: Number(groupId),
-			serverId: interaction.guildId!,
-		})
-
-		if (!itemGroup) {
-			await interaction.editReply(`Группа не существует`)
 			return
 		}
 
@@ -84,16 +69,5 @@ export async function createItemHandler(interaction: ChatInputCommandInteraction
 
 	item.imagePath = imagePath
 	await item.save()
-
-	const attachment = new AttachmentBuilder(imagePath, {name: path.basename(imagePath)})
-	const embed = new EmbedBuilder()
-		.setTitle(`Предмет "${item.name}" (id: ${item.id}) создан!`)
-		.setDescription(item.description)
-		.addFields(
-			{name: 'Качество', value: item.quality?.name ?? 'Отсутствует'},
-		)
-		.setImage(`attachment://${path.basename(imagePath)}`)
-		.setColor((item.quality?.colorHex ?? '#808080') as ColorResolvable)
-
-	await interaction.editReply({embeds: [embed], files: [attachment]})
+	await generateInfoAttachment(item, interaction)
 }

@@ -48,6 +48,7 @@ class ItemRepository extends Repository<Item> {
 			.leftJoinAndSelect('i.quality', 'q')
 			.skip((page - 1) * countPerPage)
 			.take(countPerPage)
+			.orderBy('q.chance', 'ASC')
 			.getMany()
 	}
 

@@ -3,7 +3,7 @@ import {SlashCommandSubcommandBuilder} from 'discord.js'
 export const edit: SlashCommandSubcommandBuilder = new SlashCommandSubcommandBuilder()
 	.setName('edit')
 	.setDescription('[Администратор] Редактирование качества для предметов')
-	.addStringOption(option =>
+	.addNumberOption(option =>
 		option
 			.setName('quality')
 			.setDescription('Качество')

@@ -11,15 +11,20 @@ import {InventoryItem} from '../entities/psilocybin/InventoryItem'
 import InventoryItemRepository from '../repositories/InventoryItemRepository'
 import {Like} from 'typeorm'
 
-interface ResponseBody {
+interface CommandResponseBody {
 	name: string
 	value: string
+}
+
+interface ResponseBody {
+	name: string
+	value: number
 }
 
 async function commandList(interaction: AutocompleteInteraction): Promise<void> {
 	const commandTemp: AutocompleteFocusedOption = interaction.options.getFocused(true)
 	const commands: PsilocybinCommand[] = list.filter(command => command.name.includes(commandTemp.value))
-	const commandsResponse: ResponseBody[] = commands.map(command => ({
+	const commandsResponse: CommandResponseBody[] = commands.map(command => ({
 		name: command.name,
 		value: command.name,
 	}))
@@ -29,14 +34,14 @@ async function commandList(interaction: AutocompleteInteraction): Promise<void> 
 
 export async function itemAutocompleteHandler(interaction: AutocompleteInteraction): Promise<void> {
 	const itemTemp: AutocompleteFocusedOption = interaction.options.getFocused(true)
-	const items: Item[] = await ItemRepository.getList(1, 6, {
+	const items: Item[] = await ItemRepository.getList(1, 10, {
 		name: itemTemp.value,
 		serverId: interaction.guildId
 	})
 
 	const itemsResponse: ResponseBody[] = items.map(item => ({
 		name: item.name,
-		value: String(item.id)
+		value: item.id
 	}))
 
 	await interaction.respond(itemsResponse)
@@ -48,12 +53,13 @@ export async function itemQualityAutocompleteHandler(interaction: AutocompleteIn
 		where: {
 			name: Like(`%${qualityTemp.value}%`),
 			serverId: interaction.guildId!,
-		}
+		},
+		take: 10,
 	})
 
 	const qualitiesResponse: ResponseBody[] = qualities.map(quality => ({
 		name: quality.name,
-		value: String(quality.id),
+		value: quality.id,
 	}))
 
 	await interaction.respond(qualitiesResponse)
@@ -61,27 +67,43 @@ export async function itemQualityAutocompleteHandler(interaction: AutocompleteIn
 
 export async function caseAutocompleteHandler(interaction: AutocompleteInteraction): Promise<void> {
 	const groupTemp: AutocompleteFocusedOption = interaction.options.getFocused(true)
-	const groups: ItemGroup[] = await ItemGroupRepository.getList(1, 6, {
+	const groups: ItemGroup[] = await ItemGroupRepository.getList(1, 10, {
 		name: groupTemp.value,
 		serverId: interaction.guildId
 	})
 
 	const groupsResponse: ResponseBody[] = groups.map(group => ({
 		name: group.name,
-		value: String(group.id),
+		value: group.id,
 	}))
 
 	await interaction.respond(groupsResponse)
 }
 
-export async function effectItemAutocompleteHandler(interaction: AutocompleteInteraction): Promise<void> {
-	const effectItemTemp: AutocompleteFocusedOption = interaction.options.getFocused(true)
+export async function userItemAutocompleteHandler(interaction: AutocompleteInteraction): Promise<void> {
 	const member = interaction.member as GuildMember
-	const inventoryItems: InventoryItem[] = await InventoryItemRepository.getList(1, 6, {
+	const userItemTemp: AutocompleteFocusedOption = interaction.options.getFocused(true)
+	const inventoryItems: InventoryItem[] = await InventoryItemRepository.getList(1, 10, {
+		name: userItemTemp.value,
+		serverId: interaction.guildId,
+		userId: member.id,
+	})
+
+	const itemsResponse: ResponseBody[] = inventoryItems.map(inventoryItem => ({
+		name: inventoryItem.item.name,
+		value: inventoryItem.id,
+	}))
+
+	await interaction.respond(itemsResponse)
+}
+
+export async function effectItemAutocompleteHandler(interaction: AutocompleteInteraction): Promise<void> {
+	const member = interaction.member as GuildMember
+	const effectItemTemp: AutocompleteFocusedOption = interaction.options.getFocused(true)
+	const inventoryItems: InventoryItem[] = await InventoryItemRepository.getEffectLikeList(1, 10, {
 		name: effectItemTemp.value,
 		serverId: interaction.guildId,
 		userId: member.id,
-		groupBy: 'effect'
 	})
 
 	const itemsResponse: ResponseBody[] = inventoryItems.map(inventoryItem => {
@@ -95,7 +117,7 @@ export async function effectItemAutocompleteHandler(interaction: AutocompleteInt
 
 		return {
 			name: name,
-			value: String(inventoryItem.id)
+			value: inventoryItem.id
 		}
 	})
 
@@ -109,7 +131,8 @@ export async function autocompleteHandler(interaction: AutocompleteInteraction):
 		case 'quality': return await itemQualityAutocompleteHandler(interaction)
 		case 'case': return await caseAutocompleteHandler(interaction)
 		case 'command': return await commandList(interaction)
-		case 'user-item': return await effectItemAutocompleteHandler(interaction)
+		case 'user-item': return await userItemAutocompleteHandler(interaction)
+		case 'effect-item': return await effectItemAutocompleteHandler(interaction)
 
 		default: throw new Error(`Несуществующий автокомплит ${focused.name}`)
 	}
