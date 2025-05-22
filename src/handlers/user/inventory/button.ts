@@ -13,7 +13,7 @@ async function itemListHandler(interaction: ButtonInteraction, option: string) {
         return
     }
 
-    if (interaction.user.id === cached.author.id) {
+    if (interaction.user.id !== cached.author.id) {
         await interaction.reply({
             content: `Данная команда вызвана пользователем <@${cached.author.id}>, только он может взаимодействовать с ней`,
             flags: MessageFlagsBitField.Flags.Ephemeral
