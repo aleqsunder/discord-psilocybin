@@ -14,7 +14,8 @@ export async function createVoiceChannelHandler(interaction: ModalSubmitInteract
         permissionOverwrites: [{
             id: member.id,
             allow: [
-                PermissionFlagsBits.ManageChannels
+                PermissionFlagsBits.ManageChannels,
+                PermissionFlagsBits.ManageRoles,
             ],
         }],
         reason: `Создано пользователем ${interaction.user.tag} из эффекта`
