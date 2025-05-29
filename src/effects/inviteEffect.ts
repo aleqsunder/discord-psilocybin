@@ -1,5 +1,6 @@
 import {AbstractEffect} from './abstractEffect'
 import {ChatInputCommandInteraction, TextChannel} from 'discord.js'
+import DefaultEffectError from '../errors/DefaultEffectError'
 
 export class InviteEffect extends AbstractEffect {
     removeAfterUse = true
@@ -20,8 +21,7 @@ export class InviteEffect extends AbstractEffect {
             await interaction.user.send(`Инвайт-ссылка на сервер: ${invite.url}\nВремя жизни: 24 часа`)
             await interaction.reply('Инвайт-ссылка создана и отправлена в ЛС')
         } catch (e) {
-            console.log(e)
-            throw new Error('Не удалось создать инвайт-ссылку')
+            throw new DefaultEffectError('Не удалось создать инвайт-ссылку')
         }
     }
 }

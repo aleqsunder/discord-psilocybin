@@ -6,6 +6,6 @@ export const play = new SlashCommandBuilder()
     .addStringOption(option =>
         option
             .setName('input')
-            .setDescription('Название музыки или ссылка на неё (поддерживается YouTube, SoundCloud)')
+            .setDescription('Название музыки или ссылка на неё (поддерживается YouTube, SoundCloud или прямые ссылки)')
     )
     .toJSON()

@@ -10,6 +10,6 @@ export class MusicEffect extends AbstractEffect {
 
     async onEffect(interaction: ChatInputCommandInteraction): Promise<void> {
         await interaction.reply('Вам доступна команда `/play input`, где `input` - название трека или ссылка на него\n' +
-            'Поддерживаются платформы: YouTube, Soundcloud')
+            'Поддерживаются платформы: YouTube, Soundcloud или прямые ссылки на музыкальные файлы')
     }
 }
