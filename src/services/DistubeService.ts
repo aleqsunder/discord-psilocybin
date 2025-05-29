@@ -34,7 +34,8 @@ export default class DisTubeService {
                     new SoundCloudPlugin(),
                     new DirectLinkPlugin(),
                     new AppleMusicPlugin(),
-                ]
+                ],
+                nsfw: true,
             })
 
             this.instance.on(Events.ERROR, this.onError.bind(this))
