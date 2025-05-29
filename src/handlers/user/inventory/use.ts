@@ -2,6 +2,7 @@ import {ChatInputCommandInteraction} from 'discord.js'
 import {AbstractEffect} from '../../../effects/abstractEffect'
 import InventoryItemRepository from '../../../repositories/InventoryItemRepository'
 import {InventoryItem} from '../../../entities/psilocybin/InventoryItem'
+import DefaultEffectError from '../../../errors/DefaultEffectError'
 
 export async function useItemInInventoryHandler(interaction: ChatInputCommandInteraction): Promise<void> {
     const effectItemId: number = interaction.options.getNumber('effect-item', true)
@@ -25,12 +26,17 @@ export async function useItemInInventoryHandler(interaction: ChatInputCommandInt
         await effect.onEffect(interaction, inventoryItem, inventoryItem.item.group)
         await effect.onDelete(interaction, inventoryItem)
     } catch (e) {
-        console.log('Ошибка выполнения эффекта', e)
+        switch (true) {
+            case e instanceof DefaultEffectError:
+                if (interaction.replied) {
+                    await interaction.editReply(e.message)
+                } else {
+                    await interaction.reply(e.message)
+                }
 
-        if (interaction.replied) {
-            await interaction.editReply('Не удалось выполнить эффект')
-        } else {
-            await interaction.reply('Не удалось выполнить эффект')
+                break
+            default:
+                console.error(e)
         }
     }
 }

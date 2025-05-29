@@ -8,6 +8,7 @@ import {
 } from 'discord.js'
 import {AbstractEffect} from './abstractEffect'
 import {createRoleHandler} from '../handlers/user/modals/createRole'
+import ModalSubmitError from '../errors/ModalSubmitError'
 
 export class CreateRoleEffect extends AbstractEffect {
     removeAfterUse = true
@@ -17,8 +18,9 @@ export class CreateRoleEffect extends AbstractEffect {
     description = 'Создаёт кастомную роль по желанию пользователя'
 
     async onEffect(interaction: ChatInputCommandInteraction): Promise<void> {
+        const customId: string = crypto.randomUUID()
         const modal = new ModalBuilder()
-            .setCustomId('create_role_effect')
+            .setCustomId(customId)
             .setTitle('Создание роли')
 
         const nameInput = new TextInputBuilder()
@@ -40,13 +42,13 @@ export class CreateRoleEffect extends AbstractEffect {
 
         await interaction.showModal(modal)
         const modalInteraction: ModalSubmitInteraction = await interaction.awaitModalSubmit({
-            time: 60000,
+            time: 3e5,
             filter: (i: ModalSubmitInteraction) =>
-                i.customId === 'create_role_effect' && i.user.id === interaction.user.id
+                i.customId === customId && i.user.id === interaction.user.id,
         })
 
         if (!modalInteraction.isModalSubmit()) {
-            return
+            throw new ModalSubmitError('Пользователь не создал роль за 5 минут')
         }
 
         await createRoleHandler(modalInteraction)

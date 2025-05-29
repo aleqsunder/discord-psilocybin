@@ -1,6 +1,7 @@
 import {AbstractEffect} from './abstractEffect'
 import {ChatInputCommandInteraction, GuildMember, REST, Routes, VoiceChannel} from 'discord.js'
 import process from 'process'
+import DefaultEffectError from '../errors/DefaultEffectError'
 
 const TOKEN: string = process.env.DISCORD_TOKEN || ''
 
@@ -24,7 +25,7 @@ export class TempInviteGenerate extends AbstractEffect {
         const member: GuildMember = interaction.member as GuildMember
         const voiceChannel = member.voice.channel as VoiceChannel|null
         if (!voiceChannel) {
-            throw new Error('Вы должны находиться в войсе')
+            throw new DefaultEffectError('Вы должны находиться в войсе')
         }
 
         try {
@@ -40,8 +41,7 @@ export class TempInviteGenerate extends AbstractEffect {
             await interaction.user.send(`Временная инвайт-ссылка в голосовой чат: https://discord.gg/${invite.code}\nВремя жизни: час`)
             await interaction.reply('Временная инвайт-ссылка создана и отправлена в ЛС')
         } catch (e) {
-            console.log(e)
-            throw new Error('Не удалось создать временную инвайт-ссылку')
+            throw new DefaultEffectError('Не удалось создать временную инвайт-ссылку')
         }
     }
 }
