@@ -13,13 +13,20 @@ import {buttonHandler} from '../handlers/buttonHandler'
 import {userHandler} from '../handlers/user'
 import {testHandler} from '../handlers/test'
 import musicHandler from '../handlers/music'
-import process from 'process'
 import {isAdmin} from '../utils/permissionUtils'
 import {openRandomCaseHandler} from '../handlers/case/openCase'
+import {Setting} from '../entities/psilocybin/Setting'
+import SettingRepository from '../repositories/SettingRepository'
+import {settingsHandler} from '../handlers/settingsHandler'
 
 export async function interactionCreateHandler(interaction: Interaction): Promise<void> {
-    const PSILOCYBIN_AVAILABLE_TO_USE_DEFAULT_USERS: boolean = process.env.PSILOCYBIN_AVAILABLE_TO_USE_DEFAULT_USERS === 'true'
-    if (!PSILOCYBIN_AVAILABLE_TO_USE_DEFAULT_USERS && !isAdmin(interaction)) {
+    const setting: Setting = await SettingRepository.getCurrentSetting(interaction)
+    if (!setting.availableToUse && !isAdmin(interaction)) {
+        if (interaction instanceof AutocompleteInteraction) {
+            await interaction.respond([])
+            return
+        }
+
         await (interaction as ChatInputCommandInteraction).reply('Бот в режиме администратора!')
         return
     }
@@ -52,6 +59,8 @@ export async function interactionCreateHandler(interaction: Interaction): Promis
 
             case 'case': return await itemCaseHandler(interaction)
             case 'random-case': return await openRandomCaseHandler(interaction)
+
+            case 'settings': return await settingsHandler(interaction)
         }
 
         new Error(`Несуществующая команда ${interaction.commandName}`)

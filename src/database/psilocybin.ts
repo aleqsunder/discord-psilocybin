@@ -13,6 +13,8 @@ import {InventoryItem} from '../entities/psilocybin/InventoryItem'
 import {Item} from '../entities/psilocybin/Item'
 import {ItemGroup} from '../entities/psilocybin/ItemGroup'
 import {ItemQuality} from '../entities/psilocybin/ItemQuality'
+import {Setting} from '../entities/psilocybin/Setting'
+import {SnakeNamingStrategy} from 'typeorm-naming-strategies'
 
 const entitiesList: Array<object> = [
 	Inventory,
@@ -20,6 +22,7 @@ const entitiesList: Array<object> = [
 	Item,
 	ItemGroup,
 	ItemQuality,
+	Setting,
 ]
 export const Psilocybin = new DataSource({
 	type: 'sqlite',
@@ -27,6 +30,7 @@ export const Psilocybin = new DataSource({
 	entities: entitiesList,
 	synchronize: false,
 	entitySkipConstructor: true,
+	namingStrategy: new SnakeNamingStrategy(),
 } as SqliteConnectionOptions)
 
 export let psilocybin: Database
