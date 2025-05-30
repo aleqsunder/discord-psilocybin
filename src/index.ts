@@ -1,4 +1,4 @@
-import {Client, GatewayIntentBits, Guild} from 'discord.js'
+import {Client, GatewayIntentBits, Guild, Invite} from 'discord.js'
 import {initializeDatabase} from './database/db'
 import {interactionCreateHandler} from './events/interactionCreate'
 import {guildCreateHandler} from "./events/guildCreate"
@@ -7,6 +7,7 @@ import DisTubeService from './services/DistubeService'
 import {TOKEN} from './constants'
 import {GlobalFonts} from '@napi-rs/canvas'
 import path from 'path'
+import {inviteCreateHandler} from './events/inviteCreateHandler'
 
 GlobalFonts.registerFromPath(path.join(__dirname, '../fonts/NotoColorEmoji-Regular.ttf'), 'emojis')
 GlobalFonts.registerFromPath(path.join(__dirname, '../fonts/Montserrat-Medium.ttf'), 'montserrat-medium')
@@ -33,5 +34,6 @@ client.on('ready', async () => {
 
 client.on('interactionCreate', interactionCreateHandler)
 client.on('guildCreate', (guild: Guild) => guildCreateHandler(guild, client))
+client.on('inviteCreate', (invite: Invite)=> inviteCreateHandler(invite, client))
 
 client.login(TOKEN)

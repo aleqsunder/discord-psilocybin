@@ -6,6 +6,7 @@ import {user} from './user'
 import {test} from './test'
 import {play} from './play'
 import {randomCaseShortcut} from './case/case'
+import {settings} from './settings'
 
 export const list: PsilocybinCommand[] = [
     help,
@@ -16,4 +17,5 @@ export const list: PsilocybinCommand[] = [
     user,
     test,
     play,
+    settings,
 ]
