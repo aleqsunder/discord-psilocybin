@@ -6,16 +6,10 @@ import ItemRepository from '../../repositories/ItemRepository'
 import {Item} from '../../entities/psilocybin/Item'
 import {ItemGroup} from '../../entities/psilocybin/ItemGroup'
 import ItemGroupRepository from '../../repositories/ItemGroupRepository'
-import {isAdmin} from '../../utils/permissionUtils'
 import {EffectType} from '../../factories/EffectFactory'
 import {generateInfoAttachment} from '../../utils/inventoryUtils'
 
 export async function editItemHandler(interaction: ChatInputCommandInteraction): Promise<void> {
-	if (!isAdmin(interaction)) {
-		await interaction.editReply(`У вас недостаточно прав для выполнения данной команды`)
-		return
-	}
-
 	const itemId: number = interaction.options.getNumber('item', true)
 	const item: Item|null = await ItemRepository.findOne({
 		where: {

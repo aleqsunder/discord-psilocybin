@@ -6,16 +6,10 @@ import {DEFAULT_ITEM_IMAGE_PATH, DEFAULT_ITEMS_CATALOG} from '../../constants'
 import {saveImageToStorage} from '../../utils/imageUtils'
 import ItemQualityRepository from '../../repositories/ItemQualityRepository'
 import ItemGroupRepository from '../../repositories/ItemGroupRepository'
-import {isAdmin} from '../../utils/permissionUtils'
 import {EffectType} from '../../factories/EffectFactory'
 import {generateInfoAttachment} from '../../utils/inventoryUtils'
 
 export async function createItemHandler(interaction: ChatInputCommandInteraction): Promise<void> {
-	if (!isAdmin(interaction)) {
-		await interaction.editReply(`У вас недостаточно прав для выполнения данной команды`)
-		return
-	}
-
 	const name: string = interaction.options.getString('name', true)
 	const description: string = interaction.options.getString('description', true)
 	const qualityId: number|null = interaction.options.getNumber('quality')

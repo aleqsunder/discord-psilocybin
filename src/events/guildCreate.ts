@@ -1,9 +1,9 @@
 import {Guild, TextChannel, ChannelType, Client} from "discord.js"
-import {registerCommands} from "./registerCommands"
+import {registerCommandsHandler} from "../handlers/registerCommands"
 
 export async function guildCreateHandler(guild: Guild, client: Client): Promise<void> {
     console.log(`Бот был добавлен на сервер: ${guild.name} (ID: ${guild.id})`)
-    await registerCommands(client)
+    await registerCommandsHandler(client)
 
     const botMember = guild.members.me
     if (!botMember) {

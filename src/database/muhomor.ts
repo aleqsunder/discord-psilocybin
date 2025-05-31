@@ -25,9 +25,5 @@ export async function initializeMuhomor() {
 		driver: sqlite3.Database
 	})
 
-	try {
-		await Muhomor.initialize()
-	} catch (error) {
-		console.log('Ошибка миграции:', error)
-	}
+	await Muhomor.initialize()
 }

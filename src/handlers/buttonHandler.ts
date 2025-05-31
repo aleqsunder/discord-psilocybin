@@ -1,6 +1,6 @@
 import {ButtonInteraction} from 'discord.js'
 import {itemPaginationHandler} from './item/button'
-import {inventoryPaginationHandler} from './user/inventory/button'
+import {inventoryPaginationHandler} from './inventory/button'
 import {casePaginationHandler} from './case/button'
 import {musicControlHandler} from './music/button'
 

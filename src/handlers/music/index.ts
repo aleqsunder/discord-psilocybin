@@ -5,7 +5,7 @@ import {InventoryItem} from '../../entities/psilocybin/InventoryItem'
 import InventoryItemRepository from '../../repositories/InventoryItemRepository'
 import {EffectType} from '../../factories/EffectFactory'
 
-export default async function musicHandler(interaction: ChatInputCommandInteraction): Promise<void> {
+export async function musicHandler(interaction: ChatInputCommandInteraction): Promise<void> {
     await interaction.deferReply()
 
     const member: GuildMember = interaction.member as GuildMember

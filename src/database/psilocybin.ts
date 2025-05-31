@@ -44,9 +44,9 @@ export async function initializePsilocybin() {
 		await psilocybin.migrate({
 			migrationsPath: path.join(process.cwd(), 'migrations/psilocybin')
 		})
-
-		await Psilocybin.initialize()
 	} catch (error) {
 		console.log('Ошибка миграции:', error)
 	}
+
+	await Psilocybin.initialize()
 }

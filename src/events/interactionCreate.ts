@@ -3,21 +3,22 @@ import {
     ButtonInteraction,
     ChatInputCommandInteraction,
     Interaction,
+    UserContextMenuCommandInteraction
 } from 'discord.js'
 import {helpHandler} from "../handlers/helpHandler"
 import {autocompleteHandler} from '../handlers/autocompleteHandler'
 import {itemHandler} from '../handlers/item'
-import {itemQualityHandler} from '../handlers/quality'
 import {itemCaseHandler} from '../handlers/case'
 import {buttonHandler} from '../handlers/buttonHandler'
-import {userHandler} from '../handlers/user'
-import {testHandler} from '../handlers/test'
-import musicHandler from '../handlers/music'
+import {musicHandler} from '../handlers/music'
 import {isAdmin} from '../utils/permissionUtils'
 import {openRandomCaseHandler} from '../handlers/case/openCase'
+import {inventoryHandler} from '../handlers/inventory'
+import {adminHandler} from '../handlers/adminHandler'
+import {settingsAdminHandler} from '../handlers/settingsHandler'
 import {Setting} from '../entities/psilocybin/Setting'
 import SettingRepository from '../repositories/SettingRepository'
-import {settingsHandler} from '../handlers/settingsHandler'
+import {userContextMenuHandler} from '../handlers/userContextMenu'
 
 export async function interactionCreateHandler(interaction: Interaction): Promise<void> {
     const setting: Setting = await SettingRepository.getCurrentSetting(interaction)
@@ -31,7 +32,12 @@ export async function interactionCreateHandler(interaction: Interaction): Promis
         return
     }
 
-    if (!interaction.isCommand() && !interaction.isAutocomplete() && !interaction.isButton()) {
+    if (
+        !interaction.isCommand()
+        && !interaction.isAutocomplete()
+        && !interaction.isButton()
+        && !interaction.isUserContextMenuCommand()
+    ) {
         return
     }
 
@@ -48,22 +54,24 @@ export async function interactionCreateHandler(interaction: Interaction): Promis
             return await buttonHandler(interaction as ButtonInteraction)
         }
 
-        interaction = interaction as ChatInputCommandInteraction
-        switch (interaction.commandName) {
-            case 'help': return await helpHandler(interaction)
-            case 'item': return await itemHandler(interaction)
-            case 'quality': return await itemQualityHandler(interaction)
-            case 'user': return await userHandler(interaction)
-            case 'test': return await testHandler(interaction)
-            case 'play': return await musicHandler(interaction)
-
-            case 'case': return await itemCaseHandler(interaction)
-            case 'random-case': return await openRandomCaseHandler(interaction)
-
-            case 'settings': return await settingsHandler(interaction)
+        if (interaction.isUserContextMenuCommand()) {
+            return await userContextMenuHandler(interaction as UserContextMenuCommandInteraction)
         }
 
-        new Error(`Несуществующая команда ${interaction.commandName}`)
+        interaction = interaction as ChatInputCommandInteraction
+
+        switch (interaction.commandName) {
+            case 'admin':return await adminHandler(interaction)
+            case 'settings': return await settingsAdminHandler(interaction)
+            case 'help': return await helpHandler(interaction)
+            case 'item': return await itemHandler(interaction)
+            case 'inventory': return await inventoryHandler(interaction)
+            case 'play': return await musicHandler(interaction)
+            case 'case': return await itemCaseHandler(interaction)
+            case 'random-case': return await openRandomCaseHandler(interaction)
+        }
+
+        throw new Error(`Несуществующая команда ${interaction.commandName}`)
     } catch (e) {
         console.error(e)
     }

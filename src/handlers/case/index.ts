@@ -6,17 +6,24 @@ import {showCaseHandler} from './showCase'
 import {openCaseHandler} from './openCase'
 import {removeCaseHandler} from './remove'
 
+export async function itemCaseAdminHandler(interaction: ChatInputCommandInteraction): Promise<void> {
+	const subcommand: string = interaction.options.getSubcommand()
+	switch (subcommand) {
+		case 'create': return await createCaseHandler(interaction)
+		case 'edit': return await editCaseHandler(interaction)
+		case 'remove': return await removeCaseHandler(interaction)
+		default: throw new Error(`Подкоманда "${subcommand}" не найдена`)
+	}
+}
+
 export async function itemCaseHandler(interaction: ChatInputCommandInteraction): Promise<void> {
 	await interaction.deferReply()
 
 	const subcommand: string = interaction.options.getSubcommand()
 	switch (subcommand) {
-		case 'create': return await createCaseHandler(interaction)
-		case 'edit': return await editCaseHandler(interaction)
 		case 'list': return await listCaseHandler(interaction)
 		case 'open': return await openCaseHandler(interaction)
 		case 'show': return await showCaseHandler(interaction)
-		case 'remove': return await removeCaseHandler(interaction)
 		default: throw new Error(`Подкоманда "${subcommand}" не найдена`)
 	}
 }

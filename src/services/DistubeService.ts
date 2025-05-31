@@ -19,23 +19,29 @@ import path from 'path'
 import fs from 'fs/promises'
 import ytdl from '@distube/ytdl-core'
 
+export type Plugin = SoundCloudPlugin
+    | DirectLinkPlugin
+    | AppleMusicPlugin
+    | YouTubePlugin
+
 export default class DisTubeService {
     private static instance: DisTube|null = null
     private static musicMessages: Map<string, Message> = new Map<string, Message>()
 
     public static async init(client: Client): Promise<DisTube> {
-        const cookies: ytdl.Cookie[]|undefined = await this.loadCookies()
-
         if (this.instance === null) {
+            const cookies: ytdl.Cookie[]|undefined = await this.loadCookies()
+            const plugins: Plugin[] = [
+                new YouTubePlugin({cookies}),
+                new SoundCloudPlugin(),
+                new DirectLinkPlugin(),
+                new AppleMusicPlugin(),
+            ]
+
             this.instance = new DisTube(client, {
                 emitNewSongOnly: true,
-                plugins: [
-                    new YouTubePlugin({cookies}),
-                    new SoundCloudPlugin(),
-                    new DirectLinkPlugin(),
-                    new AppleMusicPlugin(),
-                ],
                 nsfw: true,
+                plugins,
             })
 
             this.instance.on(Events.ERROR, this.onError.bind(this))
@@ -47,7 +53,7 @@ export default class DisTubeService {
         return this.instance
     }
 
-    private static async loadCookies(): Promise<ytdl.Cookie[]|undefined> {
+    private static async loadCookies(): Promise<ytdl.Cookie[]> {
         const cookiesPath = path.resolve(__dirname, 'cookies.json')
 
         try {
@@ -56,7 +62,7 @@ export default class DisTubeService {
             return JSON.parse(data)
         } catch (error) {
             console.error('Ошибка cookie parse:', error)
-            return undefined
+            return []
         }
     }
 
