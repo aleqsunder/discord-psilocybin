@@ -1,5 +1,5 @@
 import {ChatInputCommandInteraction} from "discord.js"
-import {list as commands} from "../commands/list"
+import {jsonServerCommands} from "../commands"
 
 const AVAILABLE_COMMANDS = 'Команды:'
 const ADDITIONAL_INFO = `Для получения информации о конкретной команде введите /help [:command]`
@@ -34,7 +34,7 @@ export async function helpHandler(interaction: ChatInputCommandInteraction): Pro
     let command: PsilocybinCommand|null = null
     const commandName: string|null = interaction.options.getString('command')
     if (typeof commandName === 'string') {
-        let filteredCommandList: PsilocybinCommand[] = commands.filter(command => command.name.includes(commandName))
+        let filteredCommandList: PsilocybinCommand[] = jsonServerCommands.filter(command => command.name.includes(commandName))
         if (filteredCommandList.length === 0) {
             await interaction.editReply(`Команда ${commandName} не существует в списке`)
             return
@@ -48,7 +48,7 @@ export async function helpHandler(interaction: ChatInputCommandInteraction): Pro
         return
     }
 
-    const commandList = command !== null ? command.options as PsilocybinCommand[] : commands
+    const commandList = command !== null ? command.options as PsilocybinCommand[] : jsonServerCommands
     const helpMessage = commandList
         .map(cmd => commandMap(cmd, command !== null ? command.name : null))
         .join('\n')

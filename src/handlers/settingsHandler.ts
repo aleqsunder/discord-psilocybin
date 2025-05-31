@@ -9,7 +9,7 @@ type BooleanSettingPropertyKeys = {
     [K in keyof Setting]: Setting[K] extends boolean ? K : never
 }[keyof Setting]
 
-export async function settingsHandler(interaction: ChatInputCommandInteraction): Promise<void> {
+export async function settingsAdminHandler(interaction: ChatInputCommandInteraction): Promise<void> {
     await interaction.deferReply()
     if (!isAdmin(interaction)) {
         await interaction.editReply(`У вас недостаточно прав для выполнения данной команды`)

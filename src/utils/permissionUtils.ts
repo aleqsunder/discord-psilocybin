@@ -5,5 +5,5 @@ export function isAdmin(interaction: Interaction|ChatInputCommandInteraction): b
         return false
     }
 
-    return interaction.memberPermissions.has(PermissionsBitField.Flags.KickMembers)
+    return interaction.memberPermissions.has(PermissionsBitField.Flags.BanMembers)
 }

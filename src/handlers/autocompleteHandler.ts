@@ -5,7 +5,7 @@ import {ItemQuality} from '../entities/psilocybin/ItemQuality'
 import ItemQualityRepository from '../repositories/ItemQualityRepository'
 import ItemGroupRepository from '../repositories/ItemGroupRepository'
 import {ItemGroup} from '../entities/psilocybin/ItemGroup'
-import {list} from '../commands/list'
+import {jsonServerCommands} from '../commands'
 import {AbstractEffect} from '../effects/abstractEffect'
 import {InventoryItem} from '../entities/psilocybin/InventoryItem'
 import InventoryItemRepository from '../repositories/InventoryItemRepository'
@@ -23,7 +23,7 @@ interface ResponseBody {
 
 async function commandList(interaction: AutocompleteInteraction): Promise<void> {
 	const commandTemp: AutocompleteFocusedOption = interaction.options.getFocused(true)
-	const commands: PsilocybinCommand[] = list.filter(command => command.name.includes(commandTemp.value))
+	const commands: PsilocybinCommand[] = jsonServerCommands.filter(command => command.name.includes(commandTemp.value))
 	const commandsResponse: CommandResponseBody[] = commands.map(command => ({
 		name: command.name,
 		value: command.name,
