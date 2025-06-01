@@ -17,3 +17,12 @@ declare type PsilocybinCommand = {
 }
 
 declare type SnowflakeOrNull = string|null
+
+declare interface StringResponseBody {
+	name: string
+	value: string
+}
+
+declare interface NumberResponseBody extends StringResponseBody {
+	value: number
+}
