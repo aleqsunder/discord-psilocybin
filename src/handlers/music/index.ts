@@ -1,9 +1,11 @@
 import {ChatInputCommandInteraction, GuildMember, GuildTextBasedChannel, VoiceBasedChannel} from 'discord.js'
 import DisTube from 'distube'
-import DisTubeService from '../../services/DistubeService'
+import DisTubeService, {youtubeInstance} from '../../services/DistubeService'
 import {InventoryItem} from '../../entities/psilocybin/InventoryItem'
 import InventoryItemRepository from '../../repositories/InventoryItemRepository'
 import {EffectType} from '../../factories/EffectFactory'
+import ytpl, {result} from '@distube/ytpl'
+import {YouTubePlaylist} from '@distube/youtube'
 
 export async function musicHandler(interaction: ChatInputCommandInteraction): Promise<void> {
     await interaction.deferReply()
@@ -27,13 +29,33 @@ export async function musicHandler(interaction: ChatInputCommandInteraction): Pr
         return
     }
 
-    const input: string = interaction.options.getString('input', true)
+    const song: string = interaction.options.getString('song', true)
 
     try {
         const player: DisTube = DisTubeService.get()
-        await player.play(voiceChannel, input, {textChannel, member})
+        if (ytpl.validateID(song)) {
+            if (!youtubeInstance) {
+                await interaction.editReply(`Youtube не инициализирован`)
+                return
+            }
+
+            await interaction.editReply(`Получаем список треков из плейлиста Youtube`)
+            const info: result = await ytpl(song, {limit: Infinity})
+            const playlist = new YouTubePlaylist(youtubeInstance, info, {member})
+            await player.play(voiceChannel, playlist, {textChannel, member})
+        } else {
+            await player.play(voiceChannel, song, {textChannel, member})
+        }
+
         await interaction.deleteReply()
     } catch (e) {
-        console.log('Ошибка воспроизведения:', e)
+        switch (true) {
+            case e instanceof Error:
+                await interaction.editReply(`Ошибка воспроизведения: ${e.message}`)
+                break
+            default:
+                await interaction.editReply('Ошибка воспроизведения, подробности в консоли')
+                console.log(e)
+        }
     }
 }

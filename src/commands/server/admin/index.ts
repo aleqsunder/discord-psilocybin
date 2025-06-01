@@ -9,7 +9,6 @@ import {itemRemove} from './item/remove'
 import {qualityCreate} from './quality/create'
 import {qualityEdit} from './quality/edit'
 import {qualityRemove} from './quality/remove'
-import {settings} from './settings'
 import {inventoryAdd} from './inventory/add'
 import {inventoryRemove} from './inventory/remove'
 

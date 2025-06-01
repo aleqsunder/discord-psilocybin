@@ -5,6 +5,18 @@ export const play = new SlashCommandBuilder()
     .setDescription('Включение музыки в войсе')
     .addStringOption(option =>
         option
-            .setName('input')
-            .setDescription('Название музыки или ссылка на неё (поддерживается YouTube, SoundCloud или прямые ссылки)')
+            .setName('song')
+            .setDescription('Название музыки (по умолчанию Youtube, можно выбрать в [platform]) или ссылка на неё')
+            .setAutocomplete(true)
+            .setRequired(true)
+    )
+    .addStringOption(option =>
+        option
+            .setName('platform')
+            .setDescription('Выберите платформу')
+            .addChoices(
+                {name: 'YouTube', value: 'youtube'},
+                {name: 'SoundCloud', value: 'soundcloud'},
+                {name: 'Прямая ссылка', value: 'direct'}
+            )
     )
