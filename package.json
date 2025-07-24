@@ -16,7 +16,7 @@
     "@distube/youtube": "^1.0.4",
     "@distube/yt-dlp": "^2.0.1",
     "@distube/ytdl-core": "^4.16.12",
-    "@distube/ytpl": "https://github.com/aleqsunder/ytpl",
+    "@distube/ytpl": "^1.2.3",
     "@napi-rs/canvas": "^0.1.67",
     "@types/gifencoder": "^2.0.3",
     "@types/node": "^22.15.17",

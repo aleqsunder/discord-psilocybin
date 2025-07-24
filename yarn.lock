@@ -958,9 +958,10 @@
   dependencies:
     undici "^5.25.2"
 
-"@distube/ytpl@https://github.com/aleqsunder/ytpl":
-  version "1.2.2"
-  resolved "https://github.com/aleqsunder/ytpl#a02eec5643d3cdd5b23d8d80387c1ffe0559941e"
+"@distube/ytpl@^1.2.3":
+  version "1.2.3"
+  resolved "https://registry.yarnpkg.com/@distube/ytpl/-/ytpl-1.2.3.tgz#26b259fc3627fafff6dde9903386d76e5303b00e"
+  integrity sha512-DZn1JcOwww9FX0Hz2rJKiZvrTWw9Un4JWO8KJSvymoaNZ3YTDqV8pmSfz+t6R/xDhg4xQdH2GqltExxJW/tgHw==
   dependencies:
     undici "^5.25.2"
 
