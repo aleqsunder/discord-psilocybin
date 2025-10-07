@@ -1,4 +1,4 @@
-import {AttachmentBuilder, ChatInputCommandInteraction, Message} from 'discord.js'
+import {AttachmentBuilder, ChatInputCommandInteraction, GuildTextBasedChannel, Message} from 'discord.js'
 import {ItemGroup} from '../../entities/psilocybin/ItemGroup'
 import ItemGroupRepository from '../../repositories/ItemGroupRepository'
 import {Item} from '../../entities/psilocybin/Item'
@@ -220,7 +220,9 @@ async function execute(index: number, interaction: ChatInputCommandInteraction, 
     inventoryItem.inventory = userInventory
     await inventoryItem.save()
 
+    const {user: {id}} = interaction
     const options = {
+        content: `<@${id}> начал крутить кейс...`,
         files: [gifAttachment]
     }
 
@@ -228,13 +230,14 @@ async function execute(index: number, interaction: ChatInputCommandInteraction, 
     if (index === 0) {
         message = await interaction.editReply(options)
     } else {
-        message = await interaction.followUp(options)
+        const channel = interaction.channel as GuildTextBasedChannel
+        message = await channel.send(options)
     }
 
     setTimeout(async () => {
         // first we delete the old gif async because otherwise it will start playing again for lil bit
         message.edit({
-            content: `Выпал предмет \`${winnerItem.name}\` качества \`${winnerItem.quality?.name}\`!`,
+            content: `<@${id}> выпал предмет \`${winnerItem.name}\` качества \`${winnerItem.quality?.name}\`!`,
             files: []
         })
 
