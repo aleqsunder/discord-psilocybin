@@ -1,4 +1,4 @@
-import {AttachmentBuilder, ChatInputCommandInteraction} from 'discord.js'
+import {AttachmentBuilder, ChatInputCommandInteraction, Message} from 'discord.js'
 import {ItemGroup} from '../../entities/psilocybin/ItemGroup'
 import ItemGroupRepository from '../../repositories/ItemGroupRepository'
 import {Item} from '../../entities/psilocybin/Item'
@@ -47,7 +47,12 @@ interface ImageContainer {
     effectShortName?: string
 }
 
-async function animate(items: Item[]): Promise<Buffer> {
+interface AnimationResult {
+    gifBuffer: Buffer
+    winBuffer: Buffer
+}
+
+async function animate(items: Item[]): Promise<AnimationResult> {
     const decelerationFrames: number = Math.round(durationDeceleration * fps)
     const images: ImageContainer[] = []
     for (const item of items) {
@@ -72,6 +77,7 @@ async function animate(items: Item[]): Promise<Buffer> {
     const tempDir = join(__dirname, 'temp', `gif-animation-${Date.now()}`)
     await fs.promises.mkdir(tempDir, {recursive: true})
     const outputGifPath = join(tempDir, `output-${Date.now()}.gif`)
+    const outputWinPath = join(tempDir, `frame-${decelerationFrames.toString().padStart(4, '0')}.jpeg`)
 
     for (let frame: number = decelerationFrames; frame > 0; frame--) {
         const t: number = (decelerationFrames - frame) / decelerationFrames
@@ -172,9 +178,13 @@ async function animate(items: Item[]): Promise<Buffer> {
     }
 
     const gifBuffer: Buffer<ArrayBufferLike> = await fs.promises.readFile(outputGifPath)
+    const winBuffer: Buffer<ArrayBufferLike> = await fs.promises.readFile(outputWinPath)
     await cleanupTempFiles(tempDir, outputGifPath)
 
-    return gifBuffer
+    return {
+        gifBuffer,
+        winBuffer,
+    }
 }
 
 async function cleanupTempFiles(tempDir: string, gifPath: string): Promise<void> {
@@ -196,8 +206,8 @@ async function cleanupTempFiles(tempDir: string, gifPath: string): Promise<void>
 async function execute(index: number, interaction: ChatInputCommandInteraction, items: Item[]): Promise<void> {
     const randomItems: Item[] = generateWeightedRandomItems(items, itemsCount)
 
-    const gifData: Buffer<ArrayBufferLike> = await animate(randomItems)
-    const gifAttachment: AttachmentBuilder = new AttachmentBuilder(gifData, {
+    const gifData: AnimationResult = await animate(randomItems)
+    const gifAttachment: AttachmentBuilder = new AttachmentBuilder(gifData.gifBuffer, {
         name: 'slot-machine.gif',
         description: 'Анимация прокрутки'
     })
@@ -214,11 +224,29 @@ async function execute(index: number, interaction: ChatInputCommandInteraction, 
         files: [gifAttachment]
     }
 
+    let message: Message
     if (index === 0) {
-        await interaction.editReply(options)
+        message = await interaction.editReply(options)
     } else {
-        await interaction.followUp(options)
+        message = await interaction.followUp(options)
     }
+
+    setTimeout(async () => {
+        // first we delete the old gif async because otherwise it will start playing again for lil bit
+        message.edit({
+            content: `Выпал предмет \`${winnerItem.name}\` качества \`${winnerItem.quality?.name}\`!`,
+            files: []
+        })
+
+        const winAttachment: AttachmentBuilder = new AttachmentBuilder(gifData.winBuffer, {
+            name: 'win-image.jpeg',
+            description: 'Победитель'
+        })
+
+        await message.edit({
+            files: [winAttachment]
+        })
+    }, 14000)
 }
 
 async function executeOpenCaseHandler(caseEntity: ItemGroup, interaction: ChatInputCommandInteraction): Promise<void> {
