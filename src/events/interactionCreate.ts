@@ -19,6 +19,7 @@ import {settingsAdminHandler} from '../handlers/settingsHandler'
 import {Setting} from '../entities/psilocybin/Setting'
 import SettingRepository from '../repositories/SettingRepository'
 import {userContextMenuHandler} from '../handlers/userContextMenu'
+import {summaryHandler} from '../handlers/summaryHandler'
 
 export async function interactionCreateHandler(interaction: Interaction): Promise<void> {
     const setting: Setting = await SettingRepository.getCurrentSetting(interaction)
@@ -67,6 +68,7 @@ export async function interactionCreateHandler(interaction: Interaction): Promis
             case 'item': return await itemHandler(interaction)
             case 'inventory': return await inventoryHandler(interaction)
             case 'play': return await musicHandler(interaction)
+            case 'summary': return await summaryHandler(interaction)
             case 'case': return await itemCaseHandler(interaction)
             case 'random-case': return await openRandomCaseHandler(interaction)
         }

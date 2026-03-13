@@ -6,6 +6,7 @@ import {inventory} from './inventory'
 import {play} from './play'
 import {admin} from './admin'
 import {settings} from './admin/settings'
+import {summary} from './summary'
 
 export const serverCommandList = [
     help,
@@ -14,6 +15,7 @@ export const serverCommandList = [
     item,
     inventory,
     play,
+    summary,
     admin,
     settings,
 ]
