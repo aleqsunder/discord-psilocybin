@@ -1,8 +1,11 @@
 import OpenAI from 'openai'
 import process from 'process'
 import path from 'path'
+import sharp from 'sharp'
 
 const DEFAULT_BASE_URL = 'https://bothub.chat/api/v2/openai/v1'
+const MAX_IMAGE_BYTES = 2 * 1024 * 1024
+const DEFAULT_PROMPT = process.env.DEFAULT_PROMPT ?? ''
 
 export function createOpenAIClient(apiKey?: string): OpenAI {
     const key = apiKey ?? process.env.OPENAI_API_KEY
@@ -34,7 +37,7 @@ export async function analyzeImage({
             {
                 role: 'user',
                 content: [
-                    {type: 'text', text: prompt},
+                    {type: 'text', text: DEFAULT_PROMPT + prompt},
                     {type: 'image_url', image_url: {url: dataUrl}}
                 ]
             }
@@ -56,8 +59,15 @@ async function toDataUrl(imageUrl: string): Promise<string> {
 
     const contentTypeHeader = response.headers.get('content-type') ?? ''
     const contentType = contentTypeHeader.split(';')[0].trim()
-    const mimeType = contentType || mimeTypeFromUrl(imageUrl)
-    const buffer = Buffer.from(await response.arrayBuffer())
+    let mimeType = contentType || mimeTypeFromUrl(imageUrl)
+    let buffer = Buffer.from(await response.arrayBuffer())
+
+    if (buffer.length > MAX_IMAGE_BYTES) {
+        const compressed = await compressImageBuffer(buffer)
+        buffer = Buffer.from(compressed.buffer)
+        mimeType = compressed.mimeType
+    }
+
     const base64 = buffer.toString('base64')
     return `data:${mimeType};base64,${base64}`
 }
@@ -75,6 +85,28 @@ function mimeTypeFromUrl(imageUrl: string): string {
     }
 
     return 'image/jpeg'
+}
+
+async function compressImageBuffer(input: Buffer): Promise<{buffer: Buffer<ArrayBufferLike>; mimeType: string}> {
+    let buffer = input
+    let quality = 80
+    const metadata = await sharp(input).metadata()
+    let width = metadata.width ?? null
+
+    while (buffer.length > MAX_IMAGE_BYTES) {
+        if (width && width > 200) {
+            width = Math.max(200, Math.floor(width * 0.8))
+            buffer = await sharp(buffer).resize({width}).jpeg({quality}).toBuffer()
+        } else if (quality > 40) {
+            quality -= 10
+            buffer = await sharp(buffer).jpeg({quality}).toBuffer()
+        } else {
+            buffer = await sharp(buffer).jpeg({quality: 40}).toBuffer()
+            break
+        }
+    }
+
+    return {buffer, mimeType: 'image/jpeg'}
 }
 
 export async function summarizeChat({
@@ -95,7 +127,7 @@ export async function summarizeChat({
         messages: [
             {
                 role: 'user',
-                content: `Инструкция: ${instruction}\n\nСообщения за последнее время:\n${transcript}`
+                content: `${DEFAULT_PROMPT} Инструкция: ${instruction}\n\nСообщения за последнее время:\n${transcript}`
             }
         ]
     })

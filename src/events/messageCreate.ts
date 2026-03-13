@@ -20,6 +20,32 @@ function stripBotMention(content: string, botId: string): string {
         .trim()
 }
 
+function splitIntoChunks(text: string, maxLength: number): string[] {
+    let remaining = text.trim()
+    const parts: string[] = []
+
+    while (remaining.length > maxLength) {
+        const spaceIndex = remaining.lastIndexOf(' ', maxLength)
+        const dotIndex = remaining.lastIndexOf('.', maxLength)
+        let splitIndex = Math.max(spaceIndex, dotIndex)
+        if (splitIndex < 1) {
+            splitIndex = maxLength
+        } else if (remaining[splitIndex] === '.') {
+            splitIndex += 1
+        }
+
+        const chunk = remaining.slice(0, splitIndex).trimEnd()
+        parts.push(chunk)
+        remaining = remaining.slice(splitIndex).trimStart()
+    }
+
+    if (remaining.length > 0) {
+        parts.push(remaining)
+    }
+
+    return parts
+}
+
 export async function messageCreateHandler(message: Message): Promise<void> {
     const botId = message.client.user?.id
     if (message.author.bot || !message.inGuild() || !botId || !message.mentions.users.has(botId) || !message.reference?.messageId) {
@@ -52,7 +78,11 @@ export async function messageCreateHandler(message: Message): Promise<void> {
             return
         }
 
-        await replyMessage.edit(content)
+        const parts = splitIntoChunks(content, 2000)
+        await replyMessage.edit(parts[0])
+        for (const part of parts.slice(1)) {
+            await message.channel.send({content: part})
+        }
     } catch (error) {
         console.error(error)
         if (replyMessage) {
