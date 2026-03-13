@@ -1,8 +1,7 @@
 import {ChatInputCommandInteraction, GuildTextBasedChannel, Message} from 'discord.js'
-import OpenAI from 'openai'
 import process from 'process'
+import {summarizeChat} from '../services/OpenAIService'
 
-const BOTHUB_BASE_URL = 'https://bothub.chat/api/v2/openai/v1'
 const MAX_MESSAGES = 50
 const MAX_MESSAGE_LENGTH = 500
 
@@ -32,12 +31,6 @@ export async function summaryHandler(interaction: ChatInputCommandInteraction): 
         return
     }
 
-    const apiKey = process.env.OPENAI_API_KEY
-    if (!apiKey) {
-        await interaction.editReply('Не задан ключ для генерации сводки')
-        return
-    }
-
     let messages: Message[]
     try {
         const fetched = await (channel as GuildTextBasedChannel).messages.fetch({limit: MAX_MESSAGES})
@@ -56,12 +49,6 @@ export async function summaryHandler(interaction: ChatInputCommandInteraction): 
     messages.sort((a, b) => a.createdTimestamp - b.createdTimestamp)
 
     const transcript = messages.map(formatMessage).join('\n')
-    const model = process.env.SUMMARY_MODEL ?? ''
-    if (model.trim().length <= 1) {
-        await interaction.editReply('Не задана модель')
-        return
-    }
-
     const style = interaction.options.getString('style') ?? 'frivolous'
     const instruction = style === 'serious'
         ? (process.env.SUMMARY_SERIOUS_PROMPT ?? '')
@@ -72,23 +59,8 @@ export async function summaryHandler(interaction: ChatInputCommandInteraction): 
         return
     }
 
-    const openai = new OpenAI({
-        apiKey,
-        baseURL: BOTHUB_BASE_URL
-    })
-
     try {
-        const response = await openai.chat.completions.create({
-            model,
-            messages: [
-                {
-                    role: 'user',
-                    content: `Инструкция: ${instruction}\n\nСообщения за последнее время:\n${transcript}`
-                }
-            ]
-        })
-
-        const summary = response.choices?.[0]?.message?.content?.trim()
+        const summary = await summarizeChat({instruction, transcript})
         if (!summary) {
             await interaction.editReply('Не удалось получить сводку')
             return
@@ -97,6 +69,6 @@ export async function summaryHandler(interaction: ChatInputCommandInteraction): 
         await interaction.editReply(summary)
     } catch (error) {
         console.error(error)
-        await interaction.editReply('Ошибка при генерации сводки')
+        await interaction.editReply('Ошибка при генерации сводки, подробности в консоли')
     }
 }

@@ -4,6 +4,7 @@ import {guildCreateHandler} from './guildCreate'
 import {inviteCreateHandler} from './inviteCreate'
 import {clientReadyHandler} from './clientReady'
 import {voiceStateUpdate} from './voiceStateUpdate'
+import {messageCreateHandler} from './messageCreate'
 
 export function loadEvents (client: Client) {
     client.on(Events.ClientReady, _ => clientReadyHandler(client))
@@ -11,4 +12,5 @@ export function loadEvents (client: Client) {
     client.on(Events.GuildCreate, guild => guildCreateHandler(guild, client))
     client.on(Events.InviteCreate, invite => inviteCreateHandler(invite, client))
     client.on(Events.VoiceStateUpdate, (oldState, newState) => voiceStateUpdate(oldState, newState, client))
+    client.on(Events.MessageCreate, messageCreateHandler)
 }
