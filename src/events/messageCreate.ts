@@ -1,5 +1,5 @@
 import {Message} from 'discord.js'
-import {analyzeAudio, analyzeImage, analyzeTextChain} from '../services/OpenAIService'
+import {analyzeMedia, analyzeTextChain} from '../services/OpenAIService'
 
 function isImageAttachment(message: Message): string | null {
     const attachment = message.attachments.find(item => {
@@ -28,6 +28,19 @@ function isAudioAttachment(message: Message): string | null {
 
         const url = item.url.toLowerCase()
         return url.endsWith('.mp3') || url.endsWith('.wav') || url.endsWith('.m4a')
+    })
+
+    return attachment?.url ?? null
+}
+
+function isVideoAttachment(message: Message): string | null {
+    const attachment = message.attachments.find(item => {
+        if (item.contentType?.startsWith('video/')) {
+            return true
+        }
+
+        const url = item.url.toLowerCase()
+        return url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.mov')
     })
 
     return attachment?.url ?? null
@@ -102,37 +115,43 @@ export async function messageCreateHandler(message: Message): Promise<void> {
         return
     }
 
-    const imageUrl = isImageAttachment(referenced)
-    const audioUrl = !imageUrl ? isAudioAttachment(referenced) : null
-
     const requestText = stripBotMention(message.content, botId)
-    let prompt = requestText.length > 0 ? requestText : ''
+    const referencedText = referenced.cleanContent.trim()
+    const basePrompt = requestText.length > 0 ? requestText : ''
+    const prompt = referencedText.length > 0
+        ? (basePrompt.length > 0
+            ? `${basePrompt}\n\nКонтекст референса:\n${referencedText}`
+            : `Контекст референса:\n${referencedText}`)
+        : basePrompt
+
+    const media = [
+        {kind: 'video', url: isVideoAttachment(referenced), fallback: 'Опиши, что происходит в видео'},
+        {kind: 'audio', url: isAudioAttachment(referenced), fallback: 'Опиши, что на аудио'},
+        {kind: 'image', url: isImageAttachment(referenced), fallback: 'Опиши, что на изображении'}
+    ].find(item => item.url)
+    const hasMedia = Boolean(media?.url)
 
     let replyMessage: Message | null = null
     try {
         replyMessage = await message.reply({content: 'Думаю...', allowedMentions: {repliedUser: false}})
         let content = ''
-        if (imageUrl) {
-            if (!prompt) {
-                prompt = 'Опиши, что на изображении'
-            }
-            content = await analyzeImage({prompt, imageUrl})
-        } else if (audioUrl) {
-            if (!prompt) {
-                prompt = 'Опиши, что на аудио'
-            }
-            content = await analyzeAudio({prompt, audioUrl})
+        if (hasMedia && media) {
+            const finalPrompt = prompt.length > 0 ? prompt : media.fallback
+            content = await analyzeMedia({
+                prompt: finalPrompt,
+                imageUrl: media.kind === 'image' ? media.url : null,
+                audioUrl: media.kind === 'audio' ? media.url : null,
+                videoUrl: media.kind === 'video' ? media.url : null
+            })
         } else {
-            if (!prompt) {
-                prompt = 'Ответь на цепочку сообщений'
-            }
-            const chain = await buildMessageChain(referenced, 6)
+            const finalPrompt = prompt.length > 0 ? prompt : 'Ответь на цепочку сообщений'
+            const chain = await buildMessageChain(referenced, 5)
             const chainText = formatMessageChain(chain)
-            content = await analyzeTextChain({prompt, chain: chainText})
+            content = await analyzeTextChain({prompt: finalPrompt, chain: chainText})
         }
 
         if (!content) {
-            await replyMessage.edit('Не удалось получить ответ по изображению')
+            await replyMessage.edit('Не удалось получить ответ')
             return
         }
 
