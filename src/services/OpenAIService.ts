@@ -47,6 +47,63 @@ export async function analyzeImage({
     return response.choices?.[0]?.message?.content?.trim() ?? ''
 }
 
+export async function analyzeAudio({
+    prompt,
+    audioUrl
+}: {
+    prompt: string
+    audioUrl: string
+}): Promise<string> {
+    const client = createOpenAIClient()
+    const model = process.env.SUMMARY_MODEL ?? ''
+    if (model.trim().length <= 1) {
+        throw new Error('SUMMARY_MODEL is empty')
+    }
+
+    const input = await toAudioInput(audioUrl)
+    const content: any = [
+        {type: 'text', text: DEFAULT_PROMPT + prompt},
+        {type: 'input_audio', input_audio: input}
+    ]
+    const response = await client.chat.completions.create({
+        model,
+        messages: [
+            {
+                role: 'user',
+                content
+            }
+        ]
+    })
+
+    return response.choices?.[0]?.message?.content?.trim() ?? ''
+}
+
+export async function analyzeTextChain({
+    prompt,
+    chain
+}: {
+    prompt: string
+    chain: string
+}): Promise<string> {
+    const client = createOpenAIClient()
+    const model = process.env.SUMMARY_MODEL ?? ''
+    if (model.trim().length <= 1) {
+        throw new Error('SUMMARY_MODEL is empty')
+    }
+
+    const response = await client.chat.completions.create({
+        model,
+        messages: [
+            {
+                role: 'user',
+                content: `${DEFAULT_PROMPT}${prompt}\n\nЦепочка сообщений:\n${chain}`
+            }
+        ]
+    })
+
+    return response.choices?.[0]?.message?.content?.trim() ?? ''
+}
+
 async function toDataUrl(imageUrl: string): Promise<string> {
     if (imageUrl.startsWith('data:')) {
         return imageUrl
@@ -72,6 +129,31 @@ async function toDataUrl(imageUrl: string): Promise<string> {
     return `data:${mimeType};base64,${base64}`
 }
 
+async function toAudioInput(audioUrl: string): Promise<{data: string; format: 'wav' | 'm4a' | 'mp3'}> {
+    if (audioUrl.startsWith('data:')) {
+        const match = audioUrl.match(/^data:([^;]+);base64,(.+)$/)
+        if (!match) {
+            throw new Error('AUDIO_DATA_URL_INVALID')
+        }
+
+        const mimeType = match[1]
+        const data = match[2]
+        return {data, format: audioFormatFromMime(mimeType)}
+    }
+
+    const response = await fetch(audioUrl)
+    if (!response.ok) {
+        throw new Error(`AUDIO_FETCH_FAILED_${response.status}`)
+    }
+
+    const contentTypeHeader = response.headers.get('content-type') ?? ''
+    const contentType = contentTypeHeader.split(';')[0].trim()
+    const format = contentType ? audioFormatFromMime(contentType) : audioFormatFromUrl(audioUrl)
+    const buffer = Buffer.from(await response.arrayBuffer())
+    const data = buffer.toString('base64')
+    return {data, format}
+}
+
 function mimeTypeFromUrl(imageUrl: string): string {
     try {
         const url = new URL(imageUrl)
@@ -85,6 +167,26 @@ function mimeTypeFromUrl(imageUrl: string): string {
     }
 
     return 'image/jpeg'
+}
+
+function audioFormatFromMime(mimeType: string): 'wav' | 'm4a' | 'mp3' {
+    const mime = mimeType.toLowerCase()
+    if (mime.includes('wav')) return 'wav'
+    if (mime.includes('m4a') || mime.includes('mp4')) return 'm4a'
+    return 'mp3'
+}
+
+function audioFormatFromUrl(audioUrl: string): 'wav' | 'm4a' | 'mp3' {
+    try {
+        const url = new URL(audioUrl)
+        const ext = path.extname(url.pathname).toLowerCase()
+        if (ext === '.wav') return 'wav'
+        if (ext === '.m4a') return 'm4a'
+    } catch {
+        return 'mp3'
+    }
+
+    return 'mp3'
 }
 
 async function compressImageBuffer(input: Buffer): Promise<{buffer: Buffer<ArrayBufferLike>; mimeType: string}> {

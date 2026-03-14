@@ -1,5 +1,5 @@
 import {Message} from 'discord.js'
-import {analyzeImage} from '../services/OpenAIService'
+import {analyzeAudio, analyzeImage, analyzeTextChain} from '../services/OpenAIService'
 
 function isImageAttachment(message: Message): string | null {
     const attachment = message.attachments.find(item => {
@@ -18,6 +18,48 @@ function stripBotMention(content: string, botId: string): string {
     return content
         .replace(new RegExp(`<@!?${botId}>`, 'g'), '')
         .trim()
+}
+
+function isAudioAttachment(message: Message): string | null {
+    const attachment = message.attachments.find(item => {
+        if (item.contentType?.startsWith('audio/')) {
+            return true
+        }
+
+        const url = item.url.toLowerCase()
+        return url.endsWith('.mp3') || url.endsWith('.wav') || url.endsWith('.m4a')
+    })
+
+    return attachment?.url ?? null
+}
+
+async function buildMessageChain(start: Message, limit: number): Promise<Message[]> {
+    const chain: Message[] = []
+    let current: Message | null = start
+
+    while (current && chain.length < limit) {
+        chain.push(current)
+        if (!current.reference?.messageId) {
+            break
+        }
+
+        try {
+            current = await current.fetchReference()
+        } catch {
+            break
+        }
+    }
+
+    return chain.reverse()
+}
+
+function formatMessageChain(messages: Message[]): string {
+    return messages.map(message => {
+        const author = message.member?.displayName ?? message.author.username
+        const content = message.cleanContent.trim()
+        const text = content.length > 0 ? content : '[без текста]'
+        return `${author}: ${text}`
+    }).join('\n')
 }
 
 function splitIntoChunks(text: string, maxLength: number): string[] {
@@ -61,18 +103,34 @@ export async function messageCreateHandler(message: Message): Promise<void> {
     }
 
     const imageUrl = isImageAttachment(referenced)
-    if (!imageUrl) {
-        await message.reply({content: 'В цитируемом сообщении нет изображения', allowedMentions: {repliedUser: false}})
-        return
-    }
+    const audioUrl = !imageUrl ? isAudioAttachment(referenced) : null
 
     const requestText = stripBotMention(message.content, botId)
-    const prompt = requestText.length > 0 ? requestText : 'Опиши, что на изображении'
+    let prompt = requestText.length > 0 ? requestText : ''
 
     let replyMessage: Message | null = null
     try {
         replyMessage = await message.reply({content: 'Думаю...', allowedMentions: {repliedUser: false}})
-        const content = await analyzeImage({prompt, imageUrl})
+        let content = ''
+        if (imageUrl) {
+            if (!prompt) {
+                prompt = 'Опиши, что на изображении'
+            }
+            content = await analyzeImage({prompt, imageUrl})
+        } else if (audioUrl) {
+            if (!prompt) {
+                prompt = 'Опиши, что на аудио'
+            }
+            content = await analyzeAudio({prompt, audioUrl})
+        } else {
+            if (!prompt) {
+                prompt = 'Ответь на цепочку сообщений'
+            }
+            const chain = await buildMessageChain(referenced, 6)
+            const chainText = formatMessageChain(chain)
+            content = await analyzeTextChain({prompt, chain: chainText})
+        }
+
         if (!content) {
             await replyMessage.edit('Не удалось получить ответ по изображению')
             return
@@ -86,9 +144,9 @@ export async function messageCreateHandler(message: Message): Promise<void> {
     } catch (error) {
         console.error(error)
         if (replyMessage) {
-            await replyMessage.edit('Ошибка при обработке изображения, подробности в консоли')
+            await replyMessage.edit('Ошибка при обработке запроса, подробности в консоли')
         } else {
-            await message.reply({content: 'Ошибка при обработке изображения, подробности в консоли', allowedMentions: {repliedUser: false}})
+            await message.reply({content: 'Ошибка при обработке запроса, подробности в консоли', allowedMentions: {repliedUser: false}})
         }
     }
 }
