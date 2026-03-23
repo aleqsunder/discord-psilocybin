@@ -76,7 +76,7 @@ export async function analyzeTextChain({
         messages: [
             {
                 role: 'user',
-                content: `${DEFAULT_PROMPT}${prompt}\n\nЦепочка сообщений:\n${chain}`
+                content: `${DEFAULT_PROMPT}\n\nЦепочка сообщений:\n${chain}\n\n${prompt}`
             }
         ]
     })

@@ -116,13 +116,8 @@ export async function messageCreateHandler(message: Message): Promise<void> {
     }
 
     const requestText = stripBotMention(message.content, botId)
-    const referencedText = referenced.cleanContent.trim()
     const basePrompt = requestText.length > 0 ? requestText : ''
-    const prompt = referencedText.length > 0
-        ? (basePrompt.length > 0
-            ? `${basePrompt}\n\nКонтекст референса:\n${referencedText}`
-            : `Контекст референса:\n${referencedText}`)
-        : basePrompt
+    const prompt = (message.member?.displayName ?? message.author.username) + `: ${basePrompt}`
 
     const media = [
         {kind: 'video', url: isVideoAttachment(referenced), fallback: 'Опиши, что происходит в видео'},
