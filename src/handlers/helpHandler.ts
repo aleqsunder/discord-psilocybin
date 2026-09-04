@@ -1,31 +1,56 @@
-import {ChatInputCommandInteraction} from "discord.js"
+import {ChatInputCommandInteraction, GuildTextBasedChannel} from "discord.js"
 import {jsonServerCommands} from "../commands"
 
 const AVAILABLE_COMMANDS = 'Команды:'
 const ADDITIONAL_INFO = `Для получения информации о конкретной команде введите /help [:command]`
 
+// Лимит длины сообщения в дискорде
+const MESSAGE_LIMIT = 2000
+
 function commandMap(command: PsilocybinCommand, commandName: string|null = null): string {
-    let commandOptionsName: string[] = []
-    let commandOptionsDescription: string[] = []
+    const options: PsilocybinCommand[] = command.options ?? []
+    const optionsName: string[] = options.map(option => `[${option.name}]`)
+    const optionsDescription: string[] = options.map(option => `**[${option.name}]**: ${option.description}`)
 
-    let row = '**/'
-    if (typeof command.options !== 'undefined') {
-        command.options.forEach((option: PsilocybinCommand) => {
-            commandOptionsName.push(`[${option.name}]`)
-            commandOptionsDescription.push(`**[${option.name}]**: ${option.description}`)
-        })
+    let row = `**/${commandName ? `${commandName} ` : ''}${command.name}**`
+    if (optionsName.length > 0) {
+        row += ` ${optionsName.join(' ')}`
+    }
 
-        if (commandName) {
-            row += commandName + ' '
-        }
-
-        row += `${command.name}** ${commandOptionsName.join(' ')} - ${command.description}`
-        if (commandOptionsDescription.length > 0) {
-            row += `\n-# ${commandOptionsDescription.join('\n-# ')}\n`
-        }
+    row += ` - ${command.description}`
+    if (optionsDescription.length > 0) {
+        row += `\n-# ${optionsDescription.join('\n-# ')}\n`
     }
 
     return row
+}
+
+// Список команд давно не влезает в одно сообщение, поэтому режем его по границам команд
+function splitIntoMessages(rows: string[], header: string, footer: string): string[] {
+    const messages: string[] = []
+    let current: string = header
+
+    for (const row of rows) {
+        const block: string = row.length > MESSAGE_LIMIT ? `${row.slice(0, MESSAGE_LIMIT - 1)}…` : row
+        const candidate: string = current ? `${current}\n${block}` : block
+
+        if (candidate.length <= MESSAGE_LIMIT) {
+            current = candidate
+            continue
+        }
+
+        messages.push(current)
+        current = block
+    }
+
+    const withFooter: string = `${current}\n${footer}`
+    if (withFooter.length <= MESSAGE_LIMIT) {
+        messages.push(withFooter)
+    } else {
+        messages.push(current, footer)
+    }
+
+    return messages
 }
 
 export async function helpHandler(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -49,11 +74,16 @@ export async function helpHandler(interaction: ChatInputCommandInteraction): Pro
     }
 
     const commandList = command !== null ? command.options as PsilocybinCommand[] : jsonServerCommands
-    const helpMessage = commandList
+    const rows: string[] = commandList
         .map(cmd => commandMap(cmd, command !== null ? command.name : null))
-        .join('\n')
 
-    await interaction.editReply({
-        content: `## ${AVAILABLE_COMMANDS}\n${helpMessage}\n### ${ADDITIONAL_INFO}`
-    })
+    const messages: string[] = splitIntoMessages(rows, `## ${AVAILABLE_COMMANDS}`, `### ${ADDITIONAL_INFO}`)
+
+    await interaction.editReply({content: messages[0]})
+
+    // Продолжение шлём в канал, а не через followUp — иначе дискорд цепляет ответ на первое сообщение
+    const channel = interaction.channel as GuildTextBasedChannel
+    for (const message of messages.slice(1)) {
+        await channel.send({content: message})
+    }
 }
