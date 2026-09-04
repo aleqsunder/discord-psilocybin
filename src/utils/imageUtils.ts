@@ -3,6 +3,7 @@ import fs from 'node:fs'
 import path from 'path'
 import sharp from 'sharp'
 import {Image, SKRSContext2D} from '@napi-rs/canvas'
+import {DEFAULT_IMAGES_CATALOG} from '../constants'
 
 export async function saveImageToStorage(id: number, image: Attachment, pathToSave: string): Promise<string> {
 	const timestamp: number = Date.now()
@@ -21,6 +22,25 @@ export async function saveImageToStorage(id: number, image: Attachment, pathToSa
 		.toFile(imagePath)
 
 	return imagePath
+}
+
+// В базе лежат абсолютные пути, поэтому после переноса проекта в другой каталог они перестают существовать.
+// Такой путь переносим в текущий каталог images, а если файла нет и там — отдаём картинку по умолчанию.
+export function resolveImagePath(imagePath: string, fallbackPath: string): string {
+	if (imagePath && fs.existsSync(imagePath)) {
+		return imagePath
+	}
+
+	const normalized: string = (imagePath ?? '').replace(/\\/g, '/')
+	const index: number = normalized.lastIndexOf('/images/')
+	if (index !== -1) {
+		const rebased: string = DEFAULT_IMAGES_CATALOG + normalized.slice(index + '/images'.length)
+		if (fs.existsSync(rebased)) {
+			return rebased
+		}
+	}
+
+	return fallbackPath
 }
 
 export function drawRoundedImage(

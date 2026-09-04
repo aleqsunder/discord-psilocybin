@@ -47,14 +47,15 @@ export async function addItemInInventoryHandler(interaction: ChatInputCommandInt
         return
     }
 
-    const attachment = new AttachmentBuilder(item.imagePath, {name: path.basename(item.imagePath)})
+    const imagePath: string = item.getImagePath()
+    const attachment = new AttachmentBuilder(imagePath, {name: path.basename(imagePath)})
     const embed = new EmbedBuilder()
         .setTitle(`Предмет "${item.name}" (id: ${item.id})`)
         .setDescription(item.description)
         .addFields(
             {name: 'Качество', value: item.quality?.name ?? ''},
         )
-        .setImage(`attachment://${path.basename(item.imagePath)}`)
+        .setImage(`attachment://${path.basename(imagePath)}`)
         .setColor((item.quality?.colorHex ?? '#808080') as ColorResolvable)
 
     await interaction.editReply({

@@ -2,6 +2,8 @@ import {Entity, PrimaryGeneratedColumn, Column, OneToMany, BaseEntity} from 'typ
 import {Item} from './Item'
 import {Snowflake} from 'discord.js'
 import {Image, loadImage} from '@napi-rs/canvas'
+import {resolveImagePath} from '../../utils/imageUtils'
+import {DEFAULT_GROUP_IMAGE_PATH} from '../../constants'
 
 @Entity('psilocybin_item_groups')
 export class ItemGroup extends BaseEntity {
@@ -32,7 +34,11 @@ export class ItemGroup extends BaseEntity {
 	@OneToMany(() => Item, item => item.group)
 	items!: Item[]
 
+	public getImagePath(): string {
+		return resolveImagePath(this.imagePath, DEFAULT_GROUP_IMAGE_PATH)
+	}
+
 	public async getImage(): Promise<Image> {
-		return await loadImage(this.imagePath)
+		return await loadImage(this.getImagePath())
 	}
 }

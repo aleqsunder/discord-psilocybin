@@ -132,7 +132,7 @@ export async function listItemsToAttachment(items: Item[], config?: ListImageCon
 
 	for (const item of items) {
 		list.push({
-			imagePath: item.imagePath,
+			imagePath: item.getImagePath(),
 			name: item.name,
 			description: item.quality?.name ?? '...',
 			descriptionColor: item.quality?.colorHex ?? '#808080',
@@ -148,7 +148,7 @@ export async function listCasesToAttachment(items: ItemGroup[], config?: ListIma
 
 	for (const item of items) {
 		list.push({
-			imagePath: item.imagePath,
+			imagePath: item.getImagePath(),
 			name: item.name,
 			description: item.description,
 		})
@@ -218,12 +218,13 @@ export async function generateInfoAttachment(item: Item, interaction: ChatInputC
 		fields.push({name: 'Эффект', value: item.getEffect()?.getName() ?? ''})
 	}
 
-	const attachment = new AttachmentBuilder(item.imagePath, {name: path.basename(item.imagePath)})
+	const imagePath: string = item.getImagePath()
+	const attachment = new AttachmentBuilder(imagePath, {name: path.basename(imagePath)})
 	const embed: EmbedBuilder = new EmbedBuilder()
 		.setTitle(`Предмет "${item.name}" (id: ${item.id})`)
 		.setDescription(item.description)
 		.addFields(fields)
-		.setImage(`attachment://${path.basename(item.imagePath)}`)
+		.setImage(`attachment://${path.basename(imagePath)}`)
 		.setColor(item.quality?.colorHex as ColorResolvable ?? 0x333)
 
 	await interaction.editReply({embeds: [embed], files: [attachment]})

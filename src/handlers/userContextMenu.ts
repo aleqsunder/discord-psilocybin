@@ -1,12 +1,15 @@
 import {UserContextMenuCommandInteraction} from 'discord.js'
 import {listUserItemsHandler} from './inventory/list'
+import {showUserPointsHandler} from './pointsHandler'
 
 export enum UserContextCommandId {
-    SHOW_USER_INVENTORY
+    SHOW_USER_INVENTORY,
+    SHOW_USER_POINTS
 }
 
 export const CommandDisplayNames: Record<UserContextCommandId, string> = {
-    [UserContextCommandId.SHOW_USER_INVENTORY]: 'Показать инвентарь пользователя'
+    [UserContextCommandId.SHOW_USER_INVENTORY]: 'Показать инвентарь пользователя',
+    [UserContextCommandId.SHOW_USER_POINTS]: 'Показать баланс пользователя'
 }
 
 export const DisplayNameToCommandIdMap: {[key: string]: UserContextCommandId} = {}
@@ -32,6 +35,7 @@ export async function userContextMenuHandler(interaction: UserContextMenuCommand
 
     switch (command) {
         case UserContextCommandId.SHOW_USER_INVENTORY: return await listUserItemsHandler(interaction)
+        case UserContextCommandId.SHOW_USER_POINTS: return await showUserPointsHandler(interaction)
     }
 
     throw new Error(`Несуществующая команда ${command} (button)`)

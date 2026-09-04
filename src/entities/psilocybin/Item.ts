@@ -6,6 +6,8 @@ import {Snowflake} from 'discord.js'
 import {Image, loadImage} from '@napi-rs/canvas'
 import {AbstractEffect} from '../../effects/abstractEffect'
 import {EffectFactory} from '../../factories/EffectFactory'
+import {resolveImagePath} from '../../utils/imageUtils'
+import {DEFAULT_ITEM_IMAGE_PATH} from '../../constants'
 
 @Entity('psilocybin_items')
 export class Item extends BaseEntity {
@@ -38,8 +40,12 @@ export class Item extends BaseEntity {
 	@OneToMany(() => InventoryItem, inventoryItem => inventoryItem.item, {cascade: true})
 	inventories!: InventoryItem[]
 
+	public getImagePath(): string {
+		return resolveImagePath(this.imagePath, DEFAULT_ITEM_IMAGE_PATH)
+	}
+
 	public async getImage(): Promise<Image> {
-		return await loadImage(this.imagePath)
+		return await loadImage(this.getImagePath())
 	}
 
 	public getEffect(): AbstractEffect|null {

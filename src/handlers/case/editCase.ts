@@ -42,11 +42,12 @@ export async function editCaseHandler(interaction: ChatInputCommandInteraction):
 
 	await group.save()
 
-	const attachment = new AttachmentBuilder(group.imagePath, {name: path.basename(group.imagePath)})
+	const imagePath: string = group.getImagePath()
+	const attachment = new AttachmentBuilder(imagePath, {name: path.basename(imagePath)})
 	const embed = new EmbedBuilder()
 		.setTitle(`Группа "${group.name}" (id: ${group.id}) создана!`)
 		.setDescription(group.description)
-		.setImage(`attachment://${path.basename(group.imagePath)}`)
+		.setImage(`attachment://${path.basename(imagePath)}`)
 		.setColor(0x123456)
 
 	await interaction.editReply({embeds: [embed], files: [attachment]})
