@@ -14,6 +14,9 @@ import {musicHandler} from '../handlers/music'
 import {isAdmin} from '../utils/permissionUtils'
 import {openRandomCaseHandler} from '../handlers/case/openCase'
 import {inventoryHandler} from '../handlers/inventory'
+import {promoHandler} from '../handlers/promo'
+import {pointsHandler} from '../handlers/pointsHandler'
+import {topHandler} from '../handlers/topHandler'
 import {adminHandler} from '../handlers/adminHandler'
 import {settingsAdminHandler} from '../handlers/settingsHandler'
 import {Setting} from '../entities/psilocybin/Setting'
@@ -67,6 +70,9 @@ export async function interactionCreateHandler(interaction: Interaction): Promis
             case 'help': return await helpHandler(interaction)
             case 'item': return await itemHandler(interaction)
             case 'inventory': return await inventoryHandler(interaction)
+            case 'promo': return await promoHandler(interaction)
+            case 'points': return await pointsHandler(interaction)
+            case 'top': return await topHandler(interaction)
             case 'play': return await musicHandler(interaction)
             case 'summary': return await summaryHandler(interaction)
             case 'case': return await itemCaseHandler(interaction)

@@ -14,6 +14,7 @@ import {Item} from '../entities/psilocybin/Item'
 import {ItemGroup} from '../entities/psilocybin/ItemGroup'
 import {ItemQuality} from '../entities/psilocybin/ItemQuality'
 import {Setting} from '../entities/psilocybin/Setting'
+import {Promocode} from '../entities/psilocybin/Promocode'
 import {SnakeNamingStrategy} from 'typeorm-naming-strategies'
 
 const entitiesList: Array<object> = [
@@ -23,6 +24,7 @@ const entitiesList: Array<object> = [
 	ItemGroup,
 	ItemQuality,
 	Setting,
+	Promocode,
 ]
 export const Psilocybin = new DataSource({
 	type: 'sqlite',

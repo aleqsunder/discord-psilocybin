@@ -22,3 +22,5 @@ export const DEFAULT_GROUPS_CATALOG = `${DEFAULT_IMAGES_CATALOG}/groups`
 export const DEFAULT_GROUP_IMAGE_PATH = `${DEFAULT_GROUPS_CATALOG}/default.png`
 
 export const DEFAULT_DATA_CATALOG = `${DEFAULT_IMAGES_CATALOG}/data`
+
+export const POINTS_EMOJI: string = '💠'

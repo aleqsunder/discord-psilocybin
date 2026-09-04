@@ -3,6 +3,9 @@ import {caseCommand} from './case'
 import {randomCaseShortcut} from './random-case'
 import {item} from './item'
 import {inventory} from './inventory'
+import {promo} from './promo'
+import {points} from './points'
+import {top} from './top'
 import {play} from './play'
 import {admin} from './admin'
 import {settings} from './admin/settings'
@@ -14,6 +17,9 @@ export const serverCommandList = [
     randomCaseShortcut,
     item,
     inventory,
+    promo,
+    points,
+    top,
     play,
     summary,
     admin,
