@@ -27,38 +27,13 @@ async function resolveMembers(guild: Guild, userIds: Snowflake[]): Promise<Colle
     return members
 }
 
-// interaction.guild берётся из кэша клиента и на свежем сервере может быть ещё пустым,
-// а guildId приходит в самом взаимодействии и есть всегда — сервер догружаем по нему
-async function resolveGuild(interaction: ChatInputCommandInteraction): Promise<Guild|null> {
-    if (interaction.guild) {
-        return interaction.guild
-    }
-
-    if (!interaction.guildId) {
-        return null
-    }
-
-    try {
-        return await interaction.client.guilds.fetch(interaction.guildId)
-    } catch (e) {
-        console.error('Не удалось получить сервер:', e)
-        return null
-    }
-}
-
 export async function topHandler(interaction: ChatInputCommandInteraction): Promise<void> {
     await interaction.deferReply()
 
-    const serverId: Snowflake = interaction.guildId!
-    const users: MuhomorUser[] = await MuhomorUserRepository.getTopByPoints(serverId, TOP_FETCH_LIMIT)
+    const guild: Guild = interaction.guild!
+    const users: MuhomorUser[] = await MuhomorUserRepository.getTopByPoints(guild.id, TOP_FETCH_LIMIT)
     if (users.length === 0) {
         await interaction.editReply(EMPTY_MESSAGE)
-        return
-    }
-
-    const guild: Guild|null = await resolveGuild(interaction)
-    if (!guild) {
-        await interaction.editReply('Не удалось получить данные сервера, попробуйте ещё раз')
         return
     }
 
