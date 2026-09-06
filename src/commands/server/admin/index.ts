@@ -11,6 +11,7 @@ import {qualityEdit} from './quality/edit'
 import {qualityRemove} from './quality/remove'
 import {inventoryAdd} from './inventory/add'
 import {inventoryRemove} from './inventory/remove'
+import {casinoAdd, casinoEdit, casinoList, casinoRemove} from './casino'
 
 export const admin = new SlashCommandBuilder()
     .setName("admin")
@@ -45,5 +46,14 @@ export const admin = new SlashCommandBuilder()
             .setDescription('Команды для взаимодействия с инвентарём')
             .addSubcommand(inventoryAdd)
             .addSubcommand(inventoryRemove)
+    )
+    .addSubcommandGroup((subcommandGroup: SlashCommandSubcommandGroupBuilder) =>
+        subcommandGroup
+            .setName('casino')
+            .setDescription('Команды для настройки символов казино')
+            .addSubcommand(casinoList)
+            .addSubcommand(casinoAdd)
+            .addSubcommand(casinoEdit)
+            .addSubcommand(casinoRemove)
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)

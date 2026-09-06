@@ -3,6 +3,7 @@ import {itemPaginationHandler} from './item/button'
 import {inventoryPaginationHandler} from './inventory/button'
 import {casePaginationHandler} from './case/button'
 import {musicControlHandler} from './music/button'
+import {casinoButtonHandler} from './casino/button'
 
 export async function buttonHandler(interaction: ButtonInteraction): Promise<void> {
 	const [command, subcommand, option] = interaction.customId.split(':')
@@ -11,6 +12,7 @@ export async function buttonHandler(interaction: ButtonInteraction): Promise<voi
 		case 'item': return await itemPaginationHandler(interaction, subcommand, option)
 		case 'inventory': return await inventoryPaginationHandler(interaction, subcommand, option)
 		case 'case': return await casePaginationHandler(interaction, subcommand, option)
+		case 'casino': return await casinoButtonHandler(interaction, subcommand, option)
 
 		// Музыкальные кейсы
 		case 'pause':

@@ -4,6 +4,7 @@ import {itemAdminHandler} from './item'
 import {itemQualityAdminHandler} from './quality'
 import {inventoryAdminHandler} from './inventory'
 import {itemCaseAdminHandler} from './case'
+import {casinoSymbolAdminHandler} from './casino/symbols'
 
 export async function adminHandler(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply()
@@ -18,6 +19,7 @@ export async function adminHandler(interaction: ChatInputCommandInteraction) {
         case 'quality': return await itemQualityAdminHandler(interaction)
         case 'inventory': return await inventoryAdminHandler(interaction)
         case 'case': return await itemCaseAdminHandler(interaction)
+        case 'casino': return await casinoSymbolAdminHandler(interaction)
     }
 
     throw new Error(`Несуществующая админ-команда ${subcommandGroup}`)

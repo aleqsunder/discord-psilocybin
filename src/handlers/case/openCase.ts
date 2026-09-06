@@ -16,17 +16,12 @@ import {
 import {Inventory} from '../../entities/psilocybin/Inventory'
 import InventoryRepository from '../../repositories/InventoryRepository'
 import {InventoryItem} from '../../entities/psilocybin/InventoryItem'
-import fs from 'node:fs'
-
-import {exec} from 'child_process'
-import {promisify} from 'util'
-import {join} from 'path'
-import {writeFile} from 'fs/promises'
 import {MuhomorUser} from '../../entities/MuhomorUser'
 import MuhomorUserRepository from '../../repositories/MuhomorUserRepository'
 import {truncateTextWithEllipsis} from '../../utils/paginationUtils'
 import {formatMoney} from '../../utils/formatUtils'
-const execAsync = promisify(exec)
+import {renderGif} from '../../services/GifService'
+import {DEFAULT_IMAGES_CATALOG} from '../../constants'
 
 const canvasWidth: number = 500
 const canvasHeight: number = 180
@@ -65,8 +60,8 @@ async function animate(items: Item[]): Promise<AnimationResult> {
         })
     }
 
-    const canvas: Canvas = createCanvas(canvasWidth, canvasHeight)
-    const ctx: SKRSContext2D = canvas.getContext('2d')
+    // Фон грузим один раз, а не заново на каждом кадре
+    const background: Image = await loadImage(`${DEFAULT_IMAGES_CATALOG}/background.jpg`)
 
     const itemWidthContext: number = itemWidth - itemPadding * 2
     let currentScroll: number = images.length * itemWidth
@@ -74,24 +69,28 @@ async function animate(items: Item[]): Promise<AnimationResult> {
         - itemWidth / 2
         + Math.floor(Math.random() * itemWidthContext - itemWidthContext / 2)
 
-    const tempDir = join(__dirname, 'temp', `gif-animation-${Date.now()}`)
-    await fs.promises.mkdir(tempDir, {recursive: true})
-    const outputGifPath = join(tempDir, `output-${Date.now()}.gif`)
-    const outputWinPath = join(tempDir, `frame-${decelerationFrames.toString().padStart(4, '0')}.jpeg`)
-
-    for (let frame: number = decelerationFrames; frame > 0; frame--) {
-        const t: number = (decelerationFrames - frame) / decelerationFrames
+    // Прокрутку считаем заранее: шаг 0 — остановка, последний шаг — максимальная скорость,
+    // а кадры гифки идут в обратном порядке, чтобы барабан замедлялся к концу
+    const scrollByStep: number[] = []
+    const speedByStep: number[] = []
+    for (let step: number = 0; step < decelerationFrames; step++) {
+        const t: number = step / decelerationFrames
         const speed: number = Math.min(speedAtMax * t ** 3, speedAtMax)
 
         currentScroll -= speed
-        const background: Image = await loadImage(join(__dirname, '../images/background.jpg'))
-        ctx.drawImage(background, 0, 0, canvas.width, canvas.height)
+        scrollByStep.push(currentScroll)
+        speedByStep.push(speed)
+    }
 
-        const visibleStartIndex: number = Math.max(Math.floor(currentScroll / itemWidth) - 1, 0)
+    function drawScene(ctx: SKRSContext2D, step: number): void {
+        const scroll: number = scrollByStep[step]
+        ctx.drawImage(background, 0, 0, canvasWidth, canvasHeight)
+
+        const visibleStartIndex: number = Math.max(Math.floor(scroll / itemWidth) - 1, 0)
         const visibleEndIndex: number = visibleStartIndex + Math.ceil(canvasWidth / itemWidth) + 2
 
         for (let i: number = visibleStartIndex; i <= visibleEndIndex; i++) {
-            const x: number = i * itemWidth - currentScroll
+            const x: number = i * itemWidth - scroll
             if (x + itemWidth < 0 || x > canvasWidth) {
                 continue
             }
@@ -151,55 +150,30 @@ async function animate(items: Item[]): Promise<AnimationResult> {
             }
         }
 
-        updateArrowShake(Math.abs(speed))
+        updateArrowShake(Math.abs(speedByStep[step]))
 
         const arrowX: number = canvasWidth / 2 - ARROW_WIDTH / 2 + arrowShakeOffset
         const arrowY: number = canvasHeight - ARROW_HEIGHT - ARROW_Y_OFFSET
         drawArrow(ctx, arrowX, arrowY, ARROW_WIDTH, ARROW_HEIGHT)
-
-        const buffer: Buffer<ArrayBufferLike> = canvas.toBuffer('image/jpeg')
-        await writeFile(join(tempDir, `frame-${frame.toString().padStart(4, '0')}.jpeg`), buffer)
     }
 
-    const ffmpegCommand = `ffmpeg \
-        -framerate ${fps} \
-        -i "${join(tempDir, 'frame-%04d.jpeg')}" \
-        -vf "scale=${canvasWidth}:${canvasHeight}:flags=lanczos" \
-        -c:v gif \
-        -loop -1 \
-        "${outputGifPath}"`
+    const gifBuffer: Buffer = await renderGif({
+        width: canvasWidth,
+        height: canvasHeight,
+        fps,
+        frames: decelerationFrames,
+        loop: -1,
+        drawFrame: (ctx: SKRSContext2D, frame: number) => drawScene(ctx, decelerationFrames - 1 - frame),
+    })
 
-    try {
-        await execAsync(ffmpegCommand)
-    } catch (error) {
-        // @ts-ignore
-        console.error('Ошибка ffmpeg:', error.stderr || error.message)
-        throw error
-    }
-
-    const gifBuffer: Buffer<ArrayBufferLike> = await fs.promises.readFile(outputGifPath)
-    const winBuffer: Buffer<ArrayBufferLike> = await fs.promises.readFile(outputWinPath)
-    await cleanupTempFiles(tempDir, outputGifPath)
+    // Победный кадр — состояние остановки, то есть нулевой шаг расчёта
+    const winCanvas: Canvas = createCanvas(canvasWidth, canvasHeight)
+    drawScene(winCanvas.getContext('2d'), 0)
+    const winBuffer: Buffer = winCanvas.toBuffer('image/jpeg')
 
     return {
         gifBuffer,
         winBuffer,
-    }
-}
-
-async function cleanupTempFiles(tempDir: string, gifPath: string): Promise<void> {
-    try {
-        await fs.promises.unlink(gifPath)
-
-        const files = await fs.promises.readdir(tempDir)
-        for (const file of files) {
-            await fs.promises.unlink(join(tempDir, file))
-        }
-
-        await fs.promises.rmdir(tempDir)
-    } catch (e) {
-        // @ts-ignore
-        console.warn('Что-то пошло не так, да поебать в целом:', e.message)
     }
 }
 

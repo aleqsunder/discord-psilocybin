@@ -17,6 +17,7 @@ import {inventoryHandler} from '../handlers/inventory'
 import {promoHandler} from '../handlers/promo'
 import {pointsHandler} from '../handlers/pointsHandler'
 import {topHandler} from '../handlers/topHandler'
+import {casinoHandler} from '../handlers/casino'
 import {adminHandler} from '../handlers/adminHandler'
 import {settingsAdminHandler} from '../handlers/settingsHandler'
 import {Setting} from '../entities/psilocybin/Setting'
@@ -73,6 +74,7 @@ export async function interactionCreateHandler(interaction: Interaction): Promis
             case 'promo': return await promoHandler(interaction)
             case 'points': return await pointsHandler(interaction)
             case 'top': return await topHandler(interaction)
+            case 'casino': return await casinoHandler(interaction)
             case 'play': return await musicHandler(interaction)
             case 'summary': return await summaryHandler(interaction)
             case 'case': return await itemCaseHandler(interaction)

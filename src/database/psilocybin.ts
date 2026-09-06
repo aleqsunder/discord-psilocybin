@@ -15,6 +15,10 @@ import {ItemGroup} from '../entities/psilocybin/ItemGroup'
 import {ItemQuality} from '../entities/psilocybin/ItemQuality'
 import {Setting} from '../entities/psilocybin/Setting'
 import {Promocode} from '../entities/psilocybin/Promocode'
+import {CasinoPlayer} from '../entities/psilocybin/CasinoPlayer'
+import {CasinoBank} from '../entities/psilocybin/CasinoBank'
+import {CasinoSession} from '../entities/psilocybin/CasinoSession'
+import {CasinoSymbol} from '../entities/psilocybin/CasinoSymbol'
 import {SnakeNamingStrategy} from 'typeorm-naming-strategies'
 
 const entitiesList: Array<object> = [
@@ -25,6 +29,10 @@ const entitiesList: Array<object> = [
 	ItemQuality,
 	Setting,
 	Promocode,
+	CasinoPlayer,
+	CasinoBank,
+	CasinoSession,
+	CasinoSymbol,
 ]
 export const Psilocybin = new DataSource({
 	type: 'sqlite',

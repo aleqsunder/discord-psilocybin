@@ -6,6 +6,7 @@ import {inventory} from './inventory'
 import {promo} from './promo'
 import {points} from './points'
 import {top} from './top'
+import {casino} from './casino'
 import {play} from './play'
 import {admin} from './admin'
 import {settings} from './admin/settings'
@@ -20,6 +21,7 @@ export const serverCommandList = [
     promo,
     points,
     top,
+    casino,
     play,
     summary,
     admin,

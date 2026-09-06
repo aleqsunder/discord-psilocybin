@@ -23,4 +23,7 @@ export const DEFAULT_GROUP_IMAGE_PATH = `${DEFAULT_GROUPS_CATALOG}/default.png`
 
 export const DEFAULT_DATA_CATALOG = `${DEFAULT_IMAGES_CATALOG}/data`
 
+export const DEFAULT_CASINO_CATALOG = `${DEFAULT_IMAGES_CATALOG}/casino`
+export const DEFAULT_CASINO_IMAGE_PATH = `${DEFAULT_CASINO_CATALOG}/cherry.png`
+
 export const POINTS_EMOJI: string = '💠'

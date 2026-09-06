@@ -6,6 +6,7 @@ import {caseAutocompleteHandler} from './autocomplete/case'
 import {commandList} from './autocomplete/command'
 import {itemQualityAutocompleteHandler} from './autocomplete/itemQuality'
 import {itemAutocompleteHandler} from './autocomplete/item'
+import {casinoSymbolAutocompleteHandler} from './autocomplete/casinoSymbol'
 
 export async function autocompleteHandler(interaction: AutocompleteInteraction): Promise<void> {
 	const focused: AutocompleteFocusedOption = interaction.options.getFocused(true)
@@ -13,6 +14,7 @@ export async function autocompleteHandler(interaction: AutocompleteInteraction):
 		case 'item': return await itemAutocompleteHandler(interaction)
 		case 'quality': return await itemQualityAutocompleteHandler(interaction)
 		case 'case': return await caseAutocompleteHandler(interaction)
+		case 'casino-symbol': return await casinoSymbolAutocompleteHandler(interaction)
 		case 'command': return await commandList(interaction)
 		case 'user-item': return await userItemAutocompleteHandler(interaction)
 		case 'effect-item': return await effectItemAutocompleteHandler(interaction)
