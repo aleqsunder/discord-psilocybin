@@ -12,6 +12,8 @@ if (typeof process.env.MUHOMOR_DB_PATH === 'undefined') {
 export const TOKEN: string = process.env.DISCORD_TOKEN
 export const MUHOMOR_DB_PATH: string = process.env.MUHOMOR_DB_PATH
 export const PSILOCYBIN_DB_PATH: string = 'db/psilocybin.db'
+// How long SQLite waits for another connection's lock (node-sqlite3 default is 1000 ms)
+export const SQLITE_BUSY_TIMEOUT_MS: number = 5000
 
 export const DEFAULT_IMAGES_CATALOG = path.join(process.cwd(), 'images').replace(/\\/g, '/')
 

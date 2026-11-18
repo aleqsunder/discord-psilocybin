@@ -4,7 +4,7 @@ import {Database, open} from 'sqlite'
 import sqlite3 from 'sqlite3'
 import {SqliteConnectionOptions} from 'typeorm/driver/sqlite/SqliteConnectionOptions'
 import {DataSource} from 'typeorm'
-import {PSILOCYBIN_DB_PATH} from '../constants'
+import {PSILOCYBIN_DB_PATH, SQLITE_BUSY_TIMEOUT_MS} from '../constants'
 import path from 'path'
 import process from 'process'
 
@@ -41,6 +41,7 @@ export const Psilocybin = new DataSource({
 	synchronize: false,
 	entitySkipConstructor: true,
 	namingStrategy: new SnakeNamingStrategy(),
+	busyTimeout: SQLITE_BUSY_TIMEOUT_MS,
 } as SqliteConnectionOptions)
 
 export let psilocybin: Database
@@ -49,6 +50,7 @@ export async function initializePsilocybin() {
 		filename: path.join(PSILOCYBIN_DB_PATH),
 		driver: sqlite3.Database
 	})
+	await psilocybin.configure('busyTimeout', SQLITE_BUSY_TIMEOUT_MS)
 
 	try {
 		await psilocybin.migrate({
